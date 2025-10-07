@@ -19,6 +19,10 @@ export default class UserRepository implements IUserRepository {
     @InjectRepository(UserModel)
     private userRepository: Repository<UserModel>,
   ) {}
+  create(entity: UserEntity): UserModel {
+     const userModel = this.userRepository.create(UserMapper.toModel(entity));
+     return userModel;
+  }
   async findOne(
     query: UserQueryOptions,
   ): AsyncResult<AppException, UserEntity> {
@@ -54,7 +58,7 @@ export default class UserRepository implements IUserRepository {
   }
   async save(user: UserEntity): AsyncResult<AppException, UserEntity> {
     try {
-      const userModel = this.userRepository.create(UserMapper.toModel(user));
+      const userModel = this.create(user);
 
       await this.userRepository.save(userModel);
 
