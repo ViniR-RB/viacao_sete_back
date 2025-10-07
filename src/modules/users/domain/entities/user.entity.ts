@@ -8,8 +8,8 @@ interface UserEntityProps {
   email: string;
   name: string;
   password: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export default class UserEntity {
@@ -19,8 +19,8 @@ export default class UserEntity {
       email: props.email,
       name: props.name,
       password: props.password,
-      createdAt: props.createdAt ?? new Date(),
-      updatedAt: props.updatedAt ?? new Date(),
+      createdAt: props.createdAt,
+      updatedAt: props.updatedAt,
     };
   }
 
@@ -39,9 +39,14 @@ export default class UserEntity {
     }
   }
 
-  static create(props: UserEntityProps) {
+  static create(props: Omit<UserEntityProps, "id" | "createdAt" | "updatedAt">) {
     this.validade(props);
-    return new UserEntity(props);
+    return new UserEntity({
+      ...props,
+      id: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   }
 
   static fromData(props: UserEntityProps) {
