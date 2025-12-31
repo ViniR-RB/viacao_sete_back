@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   nest-dev:
-    container_name: base_api
+    container_name: viacao_sete_api
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -18,7 +16,7 @@ services:
       - postgres
 
   postgres:
-    container_name: base-postgres
+    container_name: viacao_sete_postgres
     image: postgres:16-alpine
     restart: always
     ports:
