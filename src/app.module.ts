@@ -1,6 +1,7 @@
 import CoreModule from '@/core/core_module';
 import ConfigurationService from '@/core/services/configuration.service';
 import AuthModule from '@/modules/auth/auth.module';
+import TransactionsModule from '@/modules/transactions/transactions.module';
 import UsersModule from '@/modules/users/users.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -27,6 +28,7 @@ import { AppService } from './app.service';
     CoreModule,
     UsersModule,
     AuthModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
