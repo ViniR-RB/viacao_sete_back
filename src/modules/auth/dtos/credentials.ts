@@ -1,12 +1,10 @@
 import UserDto from '@/modules/users/dtos/user.dto';
-import { OmitType } from '@nestjs/swagger';
+import { PickType } from '@nestjs/swagger';
 import { IsEmail, IsString, Length } from 'class-validator';
 
-export default class Credentials extends OmitType(UserDto, [
-  "id",
-  "name",
-  "createdAt",
-  "updatedAt",
+export default class Credentials extends PickType(UserDto, [
+  'email',
+  'password',
 ]) {
   @IsEmail()
   email: string;

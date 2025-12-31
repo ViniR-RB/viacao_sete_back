@@ -1,6 +1,7 @@
 import EmailValidator from '@/core/validators/email.validator';
 import NameValidator from '@/core/validators/name.validator';
 import PasswordValidator from '@/core/validators/password.validator';
+import UserRole from '@/modules/users/domain/entities/user.role';
 import UserDomainException from '@/modules/users/exceptions/user_domain_exception';
 
 interface UserEntityProps {
@@ -8,6 +9,7 @@ interface UserEntityProps {
   email: string;
   name: string;
   password: string;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +21,7 @@ export default class UserEntity {
       email: props.email,
       name: props.name,
       password: props.password,
+      role: props.role,
       createdAt: props.createdAt,
       updatedAt: props.updatedAt,
     };
@@ -37,9 +40,14 @@ export default class UserEntity {
     ) {
       throw new UserDomainException('Invalid password');
     }
+    if (props.role && !UserRole[props.role]) {
+      throw new UserDomainException('Invalid Role');
+    }
   }
 
-  static create(props: Omit<UserEntityProps, "id" | "createdAt" | "updatedAt">) {
+  static create(
+    props: Omit<UserEntityProps, 'id' | 'createdAt' | 'updatedAt'>,
+  ) {
     this.validade(props);
     return new UserEntity({
       ...props,
@@ -70,6 +78,9 @@ export default class UserEntity {
   get password() {
     return this.props.password;
   }
+  get role() {
+    return this.props.role;
+  }
   get createdAt() {
     return this.props.createdAt!;
   }
@@ -83,6 +94,7 @@ export default class UserEntity {
       email: this.props.email,
       name: this.props.name,
       password: this.props.password,
+      role: this.props.role,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };

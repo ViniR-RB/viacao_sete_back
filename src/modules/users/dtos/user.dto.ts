@@ -1,6 +1,8 @@
+import UserRole from '@/modules/users/domain/entities/user.role';
 import {
   IsDate,
   IsEmail,
+  IsEnum,
   IsNumber,
   IsString,
   Length,
@@ -22,6 +24,9 @@ export default class UserDto {
   @IsString()
   @Length(6)
   password: string;
+
+  @IsEnum(UserRole)
+  role: UserRole;
 
   @IsDate()
   createdAt: Date;

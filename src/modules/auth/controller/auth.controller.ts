@@ -43,6 +43,7 @@ export default class AuthController {
       createUserDto.name,
       createUserDto.email,
       createUserDto.password,
+      createUserDto.role,
     );
     const result = await this.createUserService.execute(param);
     if (result.isLeft()) {
