@@ -3,13 +3,16 @@ import AuthGuard from '@/core/guard/auth.guard';
 import { PageOptionsDto } from '@/modules/pagination/dto/page_options.dto';
 import ICreateTransactionCategoryUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_category_use_case';
 import ICreateTransactionUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_use_case';
+import IListTransactionCategoriesUseCase from '@/modules/transactions/domain/usecase/i_list_transaction_categories_use_case';
 import IListTransactionsUseCase from '@/modules/transactions/domain/usecase/i_list_transactions_use_case';
 import { CreateTransactionDto } from '@/modules/transactions/dtos/create_transaction.dto';
 import { CreateTransactionCategoryDto } from '@/modules/transactions/dtos/create_transaction_category.dto';
+import { TransactionCategoryFiltersDto } from '@/modules/transactions/dtos/transaction_category_filters.dto';
 import { TransactionFiltersDto } from '@/modules/transactions/dtos/transaction_filters.dto';
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
 } from '@/modules/transactions/symbols';
 import UserDto from '@/modules/users/dtos/user.dto';
@@ -34,7 +37,26 @@ export default class TransactionsController {
     private readonly createTransactionCategoryService: ICreateTransactionCategoryUseCase,
     @Inject(LIST_TRANSACTIONS_SERVICE)
     private readonly listTransactionsService: IListTransactionsUseCase,
+    @Inject(LIST_TRANSACTION_CATEGORIES_SERVICE)
+    private readonly listTransactionCategoriesService: IListTransactionCategoriesUseCase,
   ) {}
+
+  @Get('categories')
+  async listCategories(
+    @Query() options: PageOptionsDto,
+    @Query() filters: TransactionCategoryFiltersDto,
+  ) {
+    const result = await this.listTransactionCategoriesService.execute({
+      options,
+      name: filters.name,
+    });
+
+    if (result.isLeft()) {
+      throw result.value;
+    }
+
+    return result.value.fromResponse();
+  }
 
   @Post('categories')
   async createCategory(
@@ -80,6 +102,7 @@ export default class TransactionsController {
     @Query() options: PageOptionsDto,
     @Query() filters: TransactionFiltersDto,
   ) {
+    console.log('Filters:', filters);
     const result = await this.listTransactionsService.execute({
       userId: user.id,
       options,

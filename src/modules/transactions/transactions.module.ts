@@ -4,6 +4,7 @@ import ITransactionRepository from '@/modules/transactions/adapters/i_transactio
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import CreateTransactionService from '@/modules/transactions/application/create_transaction.service';
 import CreateTransactionCategoryService from '@/modules/transactions/application/create_transaction_category.service';
+import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
@@ -13,6 +14,7 @@ import TransactionRepository from '@/modules/transactions/infra/repositories/tra
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
   TRANSACTION_CATEGORY_REPOSITORY,
   TRANSACTION_REPOSITORY,
@@ -61,6 +63,12 @@ import { Repository } from 'typeorm';
       provide: LIST_TRANSACTIONS_SERVICE,
       useFactory: (transactionRepository: TransactionRepository) =>
         new ListTransactionsService(transactionRepository),
+    },
+    {
+      inject: [TRANSACTION_CATEGORY_REPOSITORY],
+      provide: LIST_TRANSACTION_CATEGORIES_SERVICE,
+      useFactory: (categoryRepository: ITransactionCategoryRepository) =>
+        new ListTransactionCategoriesService(categoryRepository),
     },
   ],
 })

@@ -2,6 +2,9 @@ import ErrorMessages from '@/core/constants/error_messages';
 import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import PageEntity from '@/modules/pagination/domain/entities/page.entity';
+import PageMetaEntity from '@/modules/pagination/domain/entities/page_meta.entity';
+import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import TransactionCategoryEntity from '@/modules/transactions/domain/entities/transaction-category.entity';
 import TransactionCategoryRespositoryException from '@/modules/transactions/exceptions/transaction_category_repository.exception';
@@ -77,6 +80,50 @@ export default class TransactionCategoryRepository
       const entity = TransactionCategoryMapper.toEntity(model);
 
       return right(entity);
+    } catch (error) {
+      return left(
+        new TransactionCategoryRespositoryException(
+          ErrorMessages.UNEXPECTED_ERROR,
+          500,
+          error,
+        ),
+      );
+    }
+  }
+
+  async findByFiltersPagination(
+    options: PageOptionsEntity,
+    name?: string,
+  ): AsyncResult<AppException, PageEntity<TransactionCategoryEntity>> {
+    try {
+      const skip = options.skip;
+      const take = options.take;
+
+      const queryBuilder = this.repository
+        .createQueryBuilder('tc')
+        .orderBy('tc.createdAt', options.order);
+
+      if (name) {
+        queryBuilder.where('tc.name ILIKE :name', { name: `%${name}%` });
+      }
+
+      const [models, total] = await queryBuilder
+        .skip(skip)
+        .take(take)
+        .getManyAndCount();
+
+      const entities = models.map(model =>
+        TransactionCategoryMapper.toEntity(model),
+      );
+
+      const pageMetaEntity = new PageMetaEntity({
+        pageOptions: options,
+        itemCount: total,
+      });
+
+      const pageEntity = new PageEntity(entities, pageMetaEntity);
+
+      return right(pageEntity);
     } catch (error) {
       return left(
         new TransactionCategoryRespositoryException(
