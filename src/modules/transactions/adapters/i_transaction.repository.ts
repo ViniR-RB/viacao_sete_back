@@ -5,6 +5,7 @@ import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
+import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
 
 export interface TransactionQueryOptions {
   userId: number;
@@ -19,6 +20,6 @@ export default interface ITransactionRepository
   extends BaseRepository<TransactionEntity, TransactionModel> {
   findByFiltersPagination(
     query: TransactionQueryOptions,
-  ): AsyncResult<AppException, PageEntity<TransactionEntity>>;
+  ): AsyncResult<AppException, PageEntity<TransactionWithCategoryReadModel>>;
   findOneById(id: string): AsyncResult<AppException, TransactionEntity>;
 }

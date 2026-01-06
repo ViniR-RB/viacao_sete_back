@@ -11,6 +11,7 @@ import TransactionEntity from '@/modules/transactions/domain/entities/transactio
 import TransactionRepositoryException from '@/modules/transactions/exceptions/transaction_repository.exception';
 import TransactionMapper from '@/modules/transactions/infra/mapper/transaction.mapper';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
+import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
 import { Repository } from 'typeorm';
 
 export default class TransactionRepository implements ITransactionRepository {
@@ -40,13 +41,15 @@ export default class TransactionRepository implements ITransactionRepository {
 
   async findByFiltersPagination(
     query: TransactionQueryOptions,
-  ): AsyncResult<AppException, PageEntity<TransactionEntity>> {
+  ): AsyncResult<AppException, PageEntity<TransactionWithCategoryReadModel>> {
     try {
       let queryBuilder = this.repository
         .createQueryBuilder('t')
         .where('t.userId = :userId', {
           userId: query.userId,
-        });
+        })
+        .leftJoin('t.category', 'c')
+        .addSelect(['c.name', 'c.description']);
 
       if (query.type) {
         queryBuilder = queryBuilder.andWhere('t.type = :type', {
@@ -87,7 +90,9 @@ export default class TransactionRepository implements ITransactionRepository {
         .take(take)
         .getManyAndCount();
 
-      const entities = models.map(model => TransactionMapper.toEntity(model));
+      const entities = models.map(model =>
+        TransactionMapper.toReadModelWithCategory(model),
+      );
 
       const pageMetaEntity = new PageMetaEntity({
         pageOptions: query.options,
