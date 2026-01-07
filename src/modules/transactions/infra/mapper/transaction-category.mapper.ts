@@ -12,6 +12,7 @@ export default abstract class TransactionCategoryMapper extends BaseMapper<
       userId: model.userId,
       name: model.name,
       description: model.description,
+      types: model.types,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     });
@@ -24,6 +25,7 @@ export default abstract class TransactionCategoryMapper extends BaseMapper<
       id: entity.id,
       userId: entity.userId,
       name: entity.name,
+      types: entity.types,
       description: entity.description,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,

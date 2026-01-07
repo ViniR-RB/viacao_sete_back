@@ -67,6 +67,7 @@ export default class TransactionsController {
       userId: user.id,
       name: dto.name,
       description: dto.description,
+      types: dto.types,
     });
 
     if (result.isLeft()) {

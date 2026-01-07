@@ -35,6 +35,7 @@ export default class CreateTransactionCategoryService
         userId: param.userId,
         name: param.name,
         description: param.description,
+        types: param.types,
       });
 
       // Salvar no repository
@@ -47,6 +48,10 @@ export default class CreateTransactionCategoryService
 
       return right(new CreateTransactionCategoryResponse(saveResult.value));
     } catch (error) {
+      if (error instanceof AppException) {
+        return left(error);
+      }
+      
       return left(
         new ServiceException(ErrorMessages.UNEXPECTED_ERROR, 500, error),
       );
