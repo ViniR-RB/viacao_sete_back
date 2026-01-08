@@ -1,6 +1,7 @@
 import CoreModule from '@/core/core_module';
+import IUnitOfWork from '@/core/interface/i_unit_of_work';
+import { UNIT_OF_WORK } from '@/core/symbols';
 import AuthModule from '@/modules/auth/auth.module';
-import ITransactionRepository from '@/modules/transactions/adapters/i_transaction.repository';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import CreateTransactionService from '@/modules/transactions/application/create_transaction.service';
 import CreateTransactionCategoryService from '@/modules/transactions/application/create_transaction_category.service';
@@ -9,14 +10,17 @@ import ListTransactionsService from '@/modules/transactions/application/list_tra
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
+import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import TransactionCategoryRepository from '@/modules/transactions/infra/repositories/transaction-category.repository';
 import TransactionRepository from '@/modules/transactions/infra/repositories/transaction.repository';
+import TransactionLineDetailsRepository from '@/modules/transactions/infra/repositories/transaction_line_details.repository';
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
   TRANSACTION_CATEGORY_REPOSITORY,
+  TRANSACTION_LINE_DETAILS_REPOSITORY,
   TRANSACTION_REPOSITORY,
 } from '@/modules/transactions/symbols';
 import { Module } from '@nestjs/common';
@@ -44,13 +48,12 @@ import { Repository } from 'typeorm';
         new TransactionCategoryRepository(categoryRepository),
     },
     {
-      inject: [TRANSACTION_REPOSITORY, TRANSACTION_CATEGORY_REPOSITORY],
+      inject: [UNIT_OF_WORK, TRANSACTION_CATEGORY_REPOSITORY],
       provide: CREATE_TRANSACTION_SERVICE,
       useFactory: (
-        transactionRepository: ITransactionRepository,
+        unitOfWork: IUnitOfWork,
         categoryRepository: ITransactionCategoryRepository,
-      ) =>
-        new CreateTransactionService(transactionRepository, categoryRepository),
+      ) => new CreateTransactionService(categoryRepository, unitOfWork),
     },
     {
       inject: [TRANSACTION_CATEGORY_REPOSITORY],
@@ -69,6 +72,12 @@ import { Repository } from 'typeorm';
       provide: LIST_TRANSACTION_CATEGORIES_SERVICE,
       useFactory: (categoryRepository: ITransactionCategoryRepository) =>
         new ListTransactionCategoriesService(categoryRepository),
+    },
+    {
+      inject: [getRepositoryToken(TransactionLineDetailsModel)],
+      provide: TRANSACTION_LINE_DETAILS_REPOSITORY,
+      useFactory: (repo: Repository<TransactionLineDetailsModel>) =>
+        new TransactionLineDetailsRepository(repo),
     },
   ],
 })

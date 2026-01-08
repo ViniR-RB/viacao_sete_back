@@ -12,10 +12,18 @@ import TransactionRepositoryException from '@/modules/transactions/exceptions/tr
 import TransactionMapper from '@/modules/transactions/infra/mapper/transaction.mapper';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 export default class TransactionRepository implements ITransactionRepository {
-  constructor(private readonly repository: Repository<TransactionModel>) {}
+  private readonly repository: Repository<TransactionModel>;
+  constructor(repoOrManager: Repository<TransactionModel> | EntityManager) {
+    if (repoOrManager instanceof Repository) {
+      this.repository = repoOrManager;
+    } else {
+      this.repository = repoOrManager.getRepository(TransactionModel);
+    }
+  }
+
   create(entity: TransactionEntity): TransactionModel {
     return this.repository.create(TransactionMapper.toModel(entity));
   }
