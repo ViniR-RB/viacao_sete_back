@@ -31,6 +31,13 @@ export class Amount {
   get inCents(): bigint {
     return this.cents;
   }
+  add(other: Amount): Amount {
+    return new Amount(this.cents + other.cents);
+  }
+
+  subtract(other: Amount): Amount {
+    return new Amount(this.cents - other.cents);
+  }
 
   equals(other: Amount): boolean {
     return this.cents === other.cents;
