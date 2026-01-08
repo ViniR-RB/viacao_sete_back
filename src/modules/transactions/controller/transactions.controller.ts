@@ -87,6 +87,7 @@ export default class TransactionsController {
       amount: dto.amount,
       type: dto.type,
       createdAt: dto.createdAt,
+      trasactionLineDetails: dto.transactionLineDetails,
     });
 
     if (result.isLeft()) {
@@ -103,7 +104,6 @@ export default class TransactionsController {
     @Query() options: PageOptionsDto,
     @Query() filters: TransactionFiltersDto,
   ) {
-    console.log('Filters:', filters);
     const result = await this.listTransactionsService.execute({
       userId: user.id,
       options,

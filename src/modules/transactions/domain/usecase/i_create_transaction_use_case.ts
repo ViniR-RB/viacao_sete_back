@@ -6,9 +6,14 @@ export interface CreateTransactionParam {
   userId: number;
   categoryId: string;
   description: string;
-  amount: number;
+  amount: number | null;
   type: TransactionType;
   createdAt: Date | null;
+  trasactionLineDetails: {
+    amountGo: number;
+    amountReturn: number;
+    driveChange: number;
+  } | null;
 }
 
 export class CreateTransactionResponse {
