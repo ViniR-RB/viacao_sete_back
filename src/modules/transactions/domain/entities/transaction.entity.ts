@@ -9,6 +9,7 @@ export interface TransactionEntityProps {
   description: string;
   amount: Amount;
   type: TransactionType;
+  transactionLineDetailsId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,7 +20,7 @@ export default class TransactionEntity {
   static create(
     props: Omit<TransactionEntityProps, 'id' | 'createdAt' | 'updatedAt'> & {
       id?: string;
-      createdAt?: Date;
+      createdAt: Date | null;
     },
   ) {
     this.validate(props);
@@ -56,6 +57,9 @@ export default class TransactionEntity {
     if (!Object.values(TransactionType).includes(props.type)) {
       throw new TransactionDomainException('Invalid transaction type');
     }
+    if (props.amount.inCents <= BigInt(0)) {
+      throw new TransactionDomainException('Amount must be greater than zero');
+    }
   }
 
   get id() {
@@ -68,6 +72,9 @@ export default class TransactionEntity {
 
   get categoryId() {
     return this.props.categoryId;
+  }
+  get transactionLineDetailsId() {
+    return this.props.transactionLineDetailsId;
   }
 
   get description() {
@@ -96,6 +103,7 @@ export default class TransactionEntity {
       userId: this.props.userId,
       categoryId: this.props.categoryId,
       description: this.props.description,
+      transactionLineDetailsId: this.props.transactionLineDetailsId,
       amount: this.props.amount.inReais,
       type: this.props.type,
       createdAt: this.props.createdAt,

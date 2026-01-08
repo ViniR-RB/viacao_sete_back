@@ -1,4 +1,5 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
+import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import UserModel from '@/modules/users/infra/models/user.model';
 import {
   Column,
@@ -6,6 +7,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -29,6 +31,17 @@ export default class TransactionModel {
   @ManyToOne(() => TransactionCategoryModel)
   @JoinColumn({ name: 'categoryId' })
   category: TransactionCategoryModel;
+
+  @OneToOne(
+    () => TransactionLineDetailsModel,
+    transactionLineDetailsModel => transactionLineDetailsModel.id,
+    { nullable: true },
+  )
+  @JoinColumn({ name: 'transaction_line_details_id' })
+  transactionLineDetails: TransactionLineDetailsModel | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'transaction_line_details_id' })
+  transactionLineDetailsId: string | null;
 
   @Column('varchar', { length: 255 })
   description: string;
