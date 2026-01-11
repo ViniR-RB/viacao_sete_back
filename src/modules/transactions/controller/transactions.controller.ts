@@ -3,6 +3,9 @@ import AuthGuard from '@/core/guard/auth.guard';
 import { PageOptionsDto } from '@/modules/pagination/dto/page_options.dto';
 import ICreateTransactionCategoryUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_category_use_case';
 import ICreateTransactionUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_use_case';
+import IExtractTransactionSummaryUseCase, {
+  ExtractPeriod,
+} from '@/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case';
 import IListTransactionCategoriesUseCase from '@/modules/transactions/domain/usecase/i_list_transaction_categories_use_case';
 import IListTransactionsUseCase from '@/modules/transactions/domain/usecase/i_list_transactions_use_case';
 import { CreateTransactionDto } from '@/modules/transactions/dtos/create_transaction.dto';
@@ -12,6 +15,7 @@ import { TransactionFiltersDto } from '@/modules/transactions/dtos/transaction_f
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
 } from '@/modules/transactions/symbols';
@@ -21,7 +25,9 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
   Inject,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -39,6 +45,8 @@ export default class TransactionsController {
     private readonly listTransactionsService: IListTransactionsUseCase,
     @Inject(LIST_TRANSACTION_CATEGORIES_SERVICE)
     private readonly listTransactionCategoriesService: IListTransactionCategoriesUseCase,
+    @Inject(EXTRACT_TRANSACTION_SUMMARY_SERVICE)
+    private readonly extractTransactionSummaryService: IExtractTransactionSummaryUseCase,
   ) {}
 
   @Get('categories')
@@ -115,6 +123,29 @@ export default class TransactionsController {
 
     if (result.isLeft()) {
       throw result.value;
+    }
+
+    return result.value.fromResponse();
+  }
+
+  @Get('summary/:period')
+  @UseGuards(AuthGuard)
+  async extractSummary(@Param('period') period: string) {
+    
+    if (!Object.values(ExtractPeriod).includes(period as ExtractPeriod)) {
+      throw new Error(
+        `Invalid period. Must be one of: ${Object.values(ExtractPeriod).join(', ')}`,
+      );
+    }
+
+    const result = await this.extractTransactionSummaryService.execute({
+      period: period as ExtractPeriod,
+    });
+
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
     }
 
     return result.value.fromResponse();

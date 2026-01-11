@@ -5,6 +5,7 @@ import AuthModule from '@/modules/auth/auth.module';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import CreateTransactionService from '@/modules/transactions/application/create_transaction.service';
 import CreateTransactionCategoryService from '@/modules/transactions/application/create_transaction_category.service';
+import ExtractTransactionSummaryService from '@/modules/transactions/application/extract_transaction_summary.service';
 import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
@@ -17,6 +18,7 @@ import TransactionLineDetailsRepository from '@/modules/transactions/infra/repos
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
   TRANSACTION_CATEGORY_REPOSITORY,
@@ -29,7 +31,11 @@ import { Repository } from 'typeorm';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TransactionModel, TransactionCategoryModel]),
+    TypeOrmModule.forFeature([
+      TransactionModel,
+      TransactionCategoryModel,
+      TransactionLineDetailsModel,
+    ]),
     AuthModule,
     CoreModule,
   ],
@@ -78,6 +84,12 @@ import { Repository } from 'typeorm';
       provide: TRANSACTION_LINE_DETAILS_REPOSITORY,
       useFactory: (repo: Repository<TransactionLineDetailsModel>) =>
         new TransactionLineDetailsRepository(repo),
+    },
+    {
+      inject: [TRANSACTION_REPOSITORY],
+      provide: EXTRACT_TRANSACTION_SUMMARY_SERVICE,
+      useFactory: (transactionRepository: TransactionRepository) =>
+        new ExtractTransactionSummaryService(transactionRepository),
     },
   ],
 })

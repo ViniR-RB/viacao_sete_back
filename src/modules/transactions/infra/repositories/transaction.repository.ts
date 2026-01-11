@@ -5,6 +5,8 @@ import { left, right } from '@/core/types/either';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/modules/pagination/domain/entities/page_meta.entity';
 import ITransactionRepository, {
+  TransactionPeriod,
+  TransactionPeriodQueryOptions,
   TransactionQueryOptions,
 } from '@/modules/transactions/adapters/i_transaction.repository';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
@@ -139,5 +141,85 @@ export default class TransactionRepository implements ITransactionRepository {
         ),
       );
     }
+  }
+
+  async findByPeriod(
+    query: TransactionPeriodQueryOptions,
+  ): AsyncResult<AppException, TransactionEntity[]> {
+    try {
+      const { startDate, endDate } = this.calculatePeriodBoundaries(
+        query.period,
+      );
+
+      let queryBuilder = this.repository
+        .createQueryBuilder('t')
+        .where('t.createdAt BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate,
+        })
+        .leftJoin('t.category', 'c')
+        .addSelect(['c.name', 'c.description'])
+        .orderBy('t.createdAt', 'DESC');
+
+      const models = await queryBuilder.getMany();
+
+      const entities = models.map(model =>
+        TransactionMapper.toEntity(model),
+      );
+
+      return right(entities);
+    } catch (error) {
+      return left(
+        new TransactionRepositoryException(
+          ErrorMessages.UNEXPECTED_ERROR,
+          500,
+          error,
+        ),
+      );
+    }
+  }
+
+  /**
+   * Calculate date boundaries based on period
+   * TWELVE_MONTHS: From the 1st day of 12 months ago to the last day of current month
+   * LAST_30_DAYS: From 30 days ago to today
+   */
+  private calculatePeriodBoundaries(period: TransactionPeriod): {
+    startDate: Date;
+    endDate: Date;
+  } {
+    const today = new Date();
+
+    if (period === TransactionPeriod.TWELVE_MONTHS) {
+      // End date: last day of current month
+      const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Start date: 1st day of 12 months ago
+      const startDate = new Date(today.getFullYear() - 1, today.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+
+      return { startDate, endDate };
+    } else if (period === TransactionPeriod.LAST_30_DAYS) {
+      // End date: today (end of day)
+      const endDate = new Date(today);
+      endDate.setHours(23, 59, 59, 999);
+
+      // Start date: 30 days ago
+      const startDate = new Date(today);
+      startDate.setDate(startDate.getDate() - 30);
+      startDate.setHours(0, 0, 0, 0);
+
+      return { startDate, endDate };
+    }
+
+    // Default fallback
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    startDate.setHours(0, 0, 0, 0);
+
+    return { startDate, endDate };
   }
 }

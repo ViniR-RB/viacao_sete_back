@@ -16,10 +16,22 @@ export interface TransactionQueryOptions {
   endDate?: Date;
 }
 
+export enum TransactionPeriod {
+  TWELVE_MONTHS = 'TWELVE_MONTHS',
+  LAST_30_DAYS = 'LAST_30_DAYS',
+}
+
+export interface TransactionPeriodQueryOptions {
+  period: TransactionPeriod;
+}
+
 export default interface ITransactionRepository
   extends BaseRepository<TransactionEntity, TransactionModel> {
   findByFiltersPagination(
     query: TransactionQueryOptions,
   ): AsyncResult<AppException, PageEntity<TransactionWithCategoryReadModel>>;
   findOneById(id: string): AsyncResult<AppException, TransactionEntity>;
+  findByPeriod(
+    query: TransactionPeriodQueryOptions,
+  ): AsyncResult<AppException, TransactionEntity[]>;
 }
