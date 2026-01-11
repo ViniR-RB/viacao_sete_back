@@ -6,9 +6,8 @@ import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import { Amount } from '@/core/value-objects/amount';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
-import ITransactionLineDetailsRepository from '@/modules/transactions/adapters/i_transaction_line_details.repository';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
-import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
+import TransactionCreationDomainService from '@/modules/transactions/domain/services/transaction_creation.domain_service';
 import ICreateTransactionUseCase, {
   CreateTransactionParam,
   CreateTransactionResponse,
@@ -20,6 +19,7 @@ export default class CreateTransactionService
 {
   constructor(
     private readonly transactionCategoryRepository: ITransactionCategoryRepository,
+    private readonly transactionCreationDomainService: TransactionCreationDomainService,
     private readonly unitOfWork: IUnitOfWork,
   ) {}
 
@@ -37,44 +37,42 @@ export default class CreateTransactionService
       }
 
       const transactionId = randomUUID();
-      const transactionRepository = this.unitOfWork.getTransactionRepository();
-      const transactionLineDetailsRepository =
-        this.unitOfWork.getTransactionLineDetailsRepository();
 
-      // 2. Processar linha de detalhes (se existir)
-      const processTransactionLineDetailsResult =
-        await this.processTransactionLineDetails(
-          param,
+      // 2. Processar linha de detalhes através do Domain Service
+      const processLineDetailsResult =
+        await this.transactionCreationDomainService.processLineDetails(
+          param.trasactionLineDetails,
           transactionId,
-          transactionLineDetailsRepository,
         );
 
-      if (processTransactionLineDetailsResult.isLeft()) {
-        return left(processTransactionLineDetailsResult.value);
+      if (processLineDetailsResult.isLeft()) {
+        await this.unitOfWork.rollback();
+        return left(processLineDetailsResult.value);
       }
 
-      // 3. Se não houver detalhes, calcular montante simples
-      const finalAmount =
+      const { amount: finalAmount, lineDetailsId } =
+        processLineDetailsResult.value;
+
+      // 3. Se não houver detalhes, usar o montante simples
+      const transactionAmount =
         param.trasactionLineDetails === null && param.amount
           ? Amount.fromReais(param.amount)
-          : processTransactionLineDetailsResult.value.amount;
+          : finalAmount;
 
-      // 4. Validar montante
-      this.validateAmount(finalAmount);
-
-      // 5. Criar e persistir transação
-      const transaction = TransactionEntity.create({
+      // 4. Criar entidade de transação (que valida automaticamente via TransactionEntity.create)
+      const transaction: TransactionEntity = TransactionEntity.create({
         id: transactionId,
         userId: param.userId,
         categoryId: param.categoryId,
         description: param.description,
-        transactionLineDetailsId:
-          processTransactionLineDetailsResult.value.transactionLineDetailsId,
-        amount: finalAmount,
+        transactionLineDetailsId: lineDetailsId,
+        amount: transactionAmount,
         type: param.type,
         createdAt: param.createdAt,
       });
 
+      // 5. Persistir transação
+      const transactionRepository = this.unitOfWork.getTransactionRepository();
       const saveResult = await transactionRepository.save(transaction);
       if (saveResult.isLeft()) {
         await this.unitOfWork.rollback();
@@ -90,7 +88,9 @@ export default class CreateTransactionService
       if (error instanceof AppException) {
         return left(error);
       }
-      return left(new ServiceException(ErrorMessages.UNEXPECTED_ERROR));
+      return left(
+        new ServiceException(ErrorMessages.UNEXPECTED_ERROR, 500, error),
+      );
     }
   }
 
@@ -99,64 +99,5 @@ export default class CreateTransactionService
    */
   private async validateCategory(categoryId: string) {
     return await this.transactionCategoryRepository.findOneById(categoryId);
-  }
-
-  /**
-   * Processa a linha de detalhes da transação (ida, volta, troco)
-   * Retorna o montante total calculado e o ID da linha de detalhes
-   */
-  private async processTransactionLineDetails(
-    param: CreateTransactionParam,
-    transactionId: string,
-    transactionLineDetailsRepository: ITransactionLineDetailsRepository,
-  ): AsyncResult<
-    AppException,
-    { amount: Amount; transactionLineDetailsId: string | null }
-  > {
-    if (!param.trasactionLineDetails) {
-      return right({
-        amount: Amount.fromCents(0),
-        transactionLineDetailsId: null,
-      });
-    }
-
-    const transactionLineDetailsId = randomUUID();
-
-    const { amountGo, amountReturn, driveChange } = param.trasactionLineDetails;
-
-    const amountGoValue = Amount.fromReais(amountGo);
-    const amountReturnValue = Amount.fromReais(amountReturn);
-    const driveChangeValue = Amount.fromReais(driveChange);
-
-    const totalAmount = amountGoValue
-      .add(amountReturnValue)
-      .add(driveChangeValue);
-
-    const transactionLineDetails = TransactionLineDetailsEntity.create({
-      id: transactionLineDetailsId,
-      transactionId,
-      amountGo: amountGoValue,
-      amountReturn: amountReturnValue,
-      driveChange: driveChangeValue,
-    });
-
-    const saveLineDetailsResult = await transactionLineDetailsRepository.save(
-      transactionLineDetails,
-    );
-
-    if (saveLineDetailsResult.isLeft()) {
-      return left(saveLineDetailsResult.value);
-    }
-
-    return right({ amount: totalAmount, transactionLineDetailsId });
-  }
-
-  /**
-   * Valida se o montante é válido (maior que zero)
-   */
-  private validateAmount(amount: Amount) {
-    if (amount.inCents <= BigInt(0)) {
-      throw new ServiceException(ErrorMessages.TRANSACTION_INVALID_AMOUNT, 400);
-    }
   }
 }

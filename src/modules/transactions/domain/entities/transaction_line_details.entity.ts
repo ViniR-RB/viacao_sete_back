@@ -1,4 +1,5 @@
 import { Amount } from '@/core/value-objects/amount';
+import TransactionDomainException from '@/modules/transactions/exceptions/transaction_domain.exception';
 
 export interface TransactionLineDetailsEntityProps {
   id: string;
@@ -30,6 +31,8 @@ export default class TransactionLineDetailsEntity {
       'id' | 'createdAt' | 'updatedAt'
     > & { id?: string; createdAt?: Date },
   ) {
+    this.validate(props);
+
     return new TransactionLineDetailsEntity({
       ...props,
       id: props.id || crypto.randomUUID(),
@@ -68,6 +71,31 @@ export default class TransactionLineDetailsEntity {
 
   get updatedAt() {
     return this.props.updatedAt;
+  }
+
+  /**
+   * Calcula o montante total da linha de detalhes
+   * Soma: amountGo + amountReturn + driveChange
+   */
+  getTotalAmount(): Amount {
+    return this.amountGo.add(this.amountReturn).add(this.driveChange);
+  }
+
+  private static validate(
+    props: Omit<
+      TransactionLineDetailsEntityProps,
+      'id' | 'createdAt' | 'updatedAt'
+    >,
+  ) {
+    if (props.amountGo.inCents < BigInt(0)) {
+      throw new TransactionDomainException('Amount go cannot be negative');
+    }
+    if (props.amountReturn.inCents < BigInt(0)) {
+      throw new TransactionDomainException('Amount return cannot be negative');
+    }
+    if (props.driveChange.inCents < BigInt(0)) {
+      throw new TransactionDomainException('Drive change cannot be negative');
+    }
   }
 
   toObject() {

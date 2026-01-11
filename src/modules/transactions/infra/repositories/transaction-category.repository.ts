@@ -7,6 +7,7 @@ import PageMetaEntity from '@/modules/pagination/domain/entities/page_meta.entit
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import TransactionCategoryEntity from '@/modules/transactions/domain/entities/transaction-category.entity';
+import TransactionCategoryType from '@/modules/transactions/domain/entities/transaction_category_enum';
 import TransactionCategoryRespositoryException from '@/modules/transactions/exceptions/transaction_category_repository.exception';
 import TransactionCategoryMapper from '@/modules/transactions/infra/mapper/transaction-category.mapper';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
@@ -94,6 +95,7 @@ export default class TransactionCategoryRepository
   async findByFiltersPagination(
     options: PageOptionsEntity,
     name?: string,
+    type?: TransactionCategoryType,
   ): AsyncResult<AppException, PageEntity<TransactionCategoryEntity>> {
     try {
       const skip = options.skip;
@@ -105,6 +107,10 @@ export default class TransactionCategoryRepository
 
       if (name) {
         queryBuilder.where('tc.name ILIKE :name', { name: `%${name}%` });
+      }
+
+      if (type) {
+        queryBuilder.andWhere('tc.types ILIKE :type', { type: `%${type}%` });
       }
 
       const [models, total] = await queryBuilder

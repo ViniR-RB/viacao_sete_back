@@ -4,6 +4,7 @@ import AsyncResult from '@/core/types/async_result';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import TransactionCategoryEntity from '@/modules/transactions/domain/entities/transaction-category.entity';
+import TransactionCategoryType from '@/modules/transactions/domain/entities/transaction_category_enum';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
 
 export default interface ITransactionCategoryRepository
@@ -15,5 +16,6 @@ export default interface ITransactionCategoryRepository
   findByFiltersPagination(
     options: PageOptionsEntity,
     name?: string,
+    type?: TransactionCategoryType,
   ): AsyncResult<AppException, PageEntity<TransactionCategoryEntity>>;
 }

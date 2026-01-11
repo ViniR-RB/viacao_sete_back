@@ -57,6 +57,7 @@ export default class TransactionsController {
     const result = await this.listTransactionCategoriesService.execute({
       options,
       name: filters.name,
+      type: filters.type,
     });
 
     if (result.isLeft()) {

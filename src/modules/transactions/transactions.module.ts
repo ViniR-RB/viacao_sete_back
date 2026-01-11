@@ -9,6 +9,7 @@ import ExtractTransactionSummaryService from '@/modules/transactions/application
 import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
+import TransactionCreationDomainService from '@/modules/transactions/domain/services/transaction_creation.domain_service';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
@@ -22,6 +23,7 @@ import {
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
   TRANSACTION_CATEGORY_REPOSITORY,
+  TRANSACTION_CREATION_DOMAIN_SERVICE,
   TRANSACTION_LINE_DETAILS_REPOSITORY,
   TRANSACTION_REPOSITORY,
 } from '@/modules/transactions/symbols';
@@ -54,12 +56,34 @@ import { Repository } from 'typeorm';
         new TransactionCategoryRepository(categoryRepository),
     },
     {
-      inject: [UNIT_OF_WORK, TRANSACTION_CATEGORY_REPOSITORY],
+      inject: [getRepositoryToken(TransactionLineDetailsModel)],
+      provide: TRANSACTION_LINE_DETAILS_REPOSITORY,
+      useFactory: (repo: Repository<TransactionLineDetailsModel>) =>
+        new TransactionLineDetailsRepository(repo),
+    },
+    {
+      inject: [TRANSACTION_LINE_DETAILS_REPOSITORY],
+      provide: TRANSACTION_CREATION_DOMAIN_SERVICE,
+      useFactory: lineDetailsRepository =>
+        new TransactionCreationDomainService(lineDetailsRepository),
+    },
+    {
+      inject: [
+        UNIT_OF_WORK,
+        TRANSACTION_CATEGORY_REPOSITORY,
+        TRANSACTION_CREATION_DOMAIN_SERVICE,
+      ],
       provide: CREATE_TRANSACTION_SERVICE,
       useFactory: (
         unitOfWork: IUnitOfWork,
         categoryRepository: ITransactionCategoryRepository,
-      ) => new CreateTransactionService(categoryRepository, unitOfWork),
+        transactionCreationDomainService: TransactionCreationDomainService,
+      ) =>
+        new CreateTransactionService(
+          categoryRepository,
+          transactionCreationDomainService,
+          unitOfWork,
+        ),
     },
     {
       inject: [TRANSACTION_CATEGORY_REPOSITORY],
@@ -78,12 +102,6 @@ import { Repository } from 'typeorm';
       provide: LIST_TRANSACTION_CATEGORIES_SERVICE,
       useFactory: (categoryRepository: ITransactionCategoryRepository) =>
         new ListTransactionCategoriesService(categoryRepository),
-    },
-    {
-      inject: [getRepositoryToken(TransactionLineDetailsModel)],
-      provide: TRANSACTION_LINE_DETAILS_REPOSITORY,
-      useFactory: (repo: Repository<TransactionLineDetailsModel>) =>
-        new TransactionLineDetailsRepository(repo),
     },
     {
       inject: [TRANSACTION_REPOSITORY],
