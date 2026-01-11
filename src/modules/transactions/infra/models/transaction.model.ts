@@ -35,7 +35,7 @@ export default class TransactionModel {
   @OneToOne(
     () => TransactionLineDetailsModel,
     transactionLineDetailsModel => transactionLineDetailsModel.id,
-    { nullable: true },
+    { nullable: true, onDelete: 'CASCADE' },
   )
   @JoinColumn({ name: 'transaction_line_details_id' })
   transactionLineDetails: TransactionLineDetailsModel | null;
