@@ -3,6 +3,7 @@ import AuthGuard from '@/core/guard/auth.guard';
 import { PageOptionsDto } from '@/modules/pagination/dto/page_options.dto';
 import ICreateTransactionCategoryUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_category_use_case';
 import ICreateTransactionUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_use_case';
+import IDeleteTransactionUseCase from '@/modules/transactions/domain/usecase/i_delete_transaction_use_case';
 import IExtractTransactionSummaryUseCase, {
   ExtractPeriod,
 } from '@/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case';
@@ -17,6 +18,7 @@ import UpdateTransactionDto from '@/modules/transactions/dtos/update_transaction
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  DELETE_TRANSACTION_SERVICE,
   EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
@@ -27,6 +29,7 @@ import UserModel from '@/modules/users/infra/models/user.model';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   Inject,
@@ -53,6 +56,8 @@ export default class TransactionsController {
     private readonly extractTransactionSummaryService: IExtractTransactionSummaryUseCase,
     @Inject(UPDATE_TRANSACTION_SERVICE)
     private readonly updateTransactionService: IUpdateTransactionUseCase,
+    @Inject(DELETE_TRANSACTION_SERVICE)
+    private readonly deleteTransactionService: IDeleteTransactionUseCase,
   ) {}
 
   @Get('categories')
@@ -169,6 +174,23 @@ export default class TransactionsController {
 
     const result = await this.extractTransactionSummaryService.execute({
       period: period as ExtractPeriod,
+    });
+
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
+    }
+
+    return result.value.fromResponse();
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  async delete(@Param('id') id: string, @User() user: UserModel) {
+    const result = await this.deleteTransactionService.execute({
+      id,
+      userId: user.id,
     });
 
     if (result.isLeft()) {

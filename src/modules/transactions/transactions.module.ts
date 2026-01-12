@@ -5,6 +5,7 @@ import AuthModule from '@/modules/auth/auth.module';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import CreateTransactionService from '@/modules/transactions/application/create_transaction.service';
 import CreateTransactionCategoryService from '@/modules/transactions/application/create_transaction_category.service';
+import DeleteTransactionService from '@/modules/transactions/application/delete_transaction.service';
 import ExtractTransactionSummaryService from '@/modules/transactions/application/extract_transaction_summary.service';
 import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
@@ -20,6 +21,7 @@ import TransactionLineDetailsRepository from '@/modules/transactions/infra/repos
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  DELETE_TRANSACTION_SERVICE,
   EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
@@ -94,6 +96,12 @@ import { Repository } from 'typeorm';
         unitOfWork: IUnitOfWork,
         categoryRepository: ITransactionCategoryRepository,
       ) => new UpdateTransactionService(unitOfWork, categoryRepository),
+    },
+    {
+      inject: [UNIT_OF_WORK],
+      provide: DELETE_TRANSACTION_SERVICE,
+      useFactory: (unitOfWork: IUnitOfWork) =>
+        new DeleteTransactionService(unitOfWork),
     },
     {
       inject: [TRANSACTION_CATEGORY_REPOSITORY],

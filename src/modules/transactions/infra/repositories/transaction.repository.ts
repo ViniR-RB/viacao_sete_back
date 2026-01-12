@@ -205,6 +205,21 @@ export default class TransactionRepository implements ITransactionRepository {
    * TWELVE_MONTHS: From the 1st day of 12 months ago to the last day of current month
    * LAST_30_DAYS: From 30 days ago to today
    */
+  async delete(entity: TransactionEntity): AsyncResult<AppException, void> {
+    try {
+      await this.repository.delete(entity.id);
+      return right(undefined);
+    } catch (error) {
+      return left(
+        new TransactionRepositoryException(
+          ErrorMessages.UNEXPECTED_ERROR,
+          500,
+          error,
+        ),
+      );
+    }
+  }
+
   private calculatePeriodBoundaries(period: TransactionPeriod): {
     startDate: Date;
     endDate: Date;

@@ -37,4 +37,5 @@ export default interface ITransactionRepository
   findByPeriod(
     query: TransactionPeriodQueryOptions,
   ): AsyncResult<AppException, TransactionEntity[]>;
+  delete(entity: TransactionEntity): AsyncResult<AppException, void>;
 }
