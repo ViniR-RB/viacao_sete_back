@@ -3,6 +3,7 @@ import BaseRepository from '@/core/interface/base.repository';
 import AsyncResult from '@/core/types/async_result';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
+import { TransactionFindOneQueryOptions } from '@/modules/transactions/adapters/query/query_options';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
@@ -30,7 +31,9 @@ export default interface ITransactionRepository
   findByFiltersPagination(
     query: TransactionQueryOptions,
   ): AsyncResult<AppException, PageEntity<TransactionWithCategoryReadModel>>;
-  findOneById(id: string): AsyncResult<AppException, TransactionEntity>;
+  findOne(
+    query: TransactionFindOneQueryOptions,
+  ): AsyncResult<AppException, TransactionEntity>;
   findByPeriod(
     query: TransactionPeriodQueryOptions,
   ): AsyncResult<AppException, TransactionEntity[]>;

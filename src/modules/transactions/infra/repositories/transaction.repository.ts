@@ -9,12 +9,18 @@ import ITransactionRepository, {
   TransactionPeriodQueryOptions,
   TransactionQueryOptions,
 } from '@/modules/transactions/adapters/i_transaction.repository';
+import { TransactionFindOneQueryOptions } from '@/modules/transactions/adapters/query/query_options';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
 import TransactionRepositoryException from '@/modules/transactions/exceptions/transaction_repository.exception';
 import TransactionMapper from '@/modules/transactions/infra/mapper/transaction.mapper';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
-import { EntityManager, Repository } from 'typeorm';
+import {
+  EntityManager,
+  EntityNotFoundError,
+  FindOneOptions,
+  Repository,
+} from 'typeorm';
 
 export default class TransactionRepository implements ITransactionRepository {
   private readonly repository: Repository<TransactionModel>;
@@ -123,20 +129,33 @@ export default class TransactionRepository implements ITransactionRepository {
     }
   }
 
-  async findOneById(id: string): AsyncResult<AppException, TransactionEntity> {
+  async findOne(
+    query: TransactionFindOneQueryOptions,
+  ): AsyncResult<AppException, TransactionEntity> {
     try {
-      const model = await this.repository.findOne({
-        where: { id },
-      });
+      let options: FindOneOptions<TransactionModel> = {
+        select: query.selectFields,
+      };
 
-      if (!model) {
-        return left(TransactionRepositoryException.notFound(id));
+      if (query.transactionId) {
+        options = {
+          ...options,
+          where: { id: query.transactionId },
+        };
       }
 
-      const entity = TransactionMapper.toEntity(model);
+      const transactionLineDetailsFinder =
+        await this.repository.findOneOrFail(options);
+
+      const entity = TransactionMapper.toEntity(transactionLineDetailsFinder);
 
       return right(entity);
     } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        return left(
+          TransactionRepositoryException.notFound(query.transactionId),
+        );
+      }
       return left(
         new TransactionRepositoryException(
           ErrorMessages.UNEXPECTED_ERROR,
