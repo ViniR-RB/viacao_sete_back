@@ -45,6 +45,13 @@ export default abstract class TransactionMapper extends BaseMapper<
       amount: Amount.fromCents(model.amount),
       type: model.type,
       transactionLineDetailsId: model.transactionLineDetailsId,
+      lineDetails: model.transactionLineDetails
+        ? {
+            amountGo: Amount.fromCents(model.transactionLineDetails.amountGo),
+            amountReturn: Amount.fromCents(model.transactionLineDetails.amountReturn),
+            driveChange: Amount.fromCents(model.transactionLineDetails.driveChange),
+          }
+        : null,
       category: {
         name: model.category.name,
         description: model.category.name,

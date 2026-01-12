@@ -4,9 +4,7 @@ import { Column, Entity, OneToOne } from 'typeorm';
 
 @Entity('transaction_line_details')
 export default class TransactionLineDetailsModel extends BaseModelPrimaryColumnUuid {
-  @OneToOne(() => TransactionModel, transaction => transaction.id, {
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => TransactionModel, transaction => transaction.id)
   transaction: TransactionModel;
 
   @Column({
@@ -17,22 +15,22 @@ export default class TransactionLineDetailsModel extends BaseModelPrimaryColumnU
 
   @Column('bigint', {
     transformer: {
-      to: (value: bigint) => value.toString(),
-      from: (value: string) => BigInt(value),
+      to: (value: bigint | null) => value?.toString(),
+      from: (value: string | null) => (value ? BigInt(value) : null),
     },
   })
   amountGo: bigint;
   @Column('bigint', {
     transformer: {
-      to: (value: bigint) => value.toString(),
-      from: (value: string) => BigInt(value),
+      to: (value: bigint | null) => value?.toString(),
+      from: (value: string | null) => (value ? BigInt(value) : null),
     },
   })
   amountReturn: bigint;
   @Column('bigint', {
     transformer: {
-      to: (value: bigint) => value.toString(),
-      from: (value: string) => BigInt(value),
+      to: (value: bigint | null) => value?.toString(),
+      from: (value: string | null) => (value ? BigInt(value) : null),
     },
   })
   driveChange: bigint;

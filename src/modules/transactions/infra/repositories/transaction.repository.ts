@@ -59,7 +59,9 @@ export default class TransactionRepository implements ITransactionRepository {
           userId: query.userId,
         })
         .leftJoin('t.category', 'c')
-        .addSelect(['c.name', 'c.description']);
+        .addSelect(['c.name', 'c.description'])
+        .leftJoin('t.transactionLineDetails', 'tld')
+        .addSelect(['tld.amountGo', 'tld.amountReturn', 'tld.driveChange']);
 
       if (query.type) {
         queryBuilder = queryBuilder.andWhere('t.type = :type', {
@@ -93,13 +95,11 @@ export default class TransactionRepository implements ITransactionRepository {
 
       const skip = (query.options.page - 1) * query.options.take;
       const take = query.options.take;
-
       const [models, total] = await queryBuilder
-        .orderBy('t.createdAt', 'DESC')
+        .orderBy('t.createdAt', query.options.order)
         .skip(skip)
         .take(take)
         .getManyAndCount();
-
       const entities = models.map(model =>
         TransactionMapper.toReadModelWithCategory(model),
       );
@@ -114,7 +114,11 @@ export default class TransactionRepository implements ITransactionRepository {
       return right(pageEntity);
     } catch (error) {
       return left(
-        new TransactionRepositoryException(ErrorMessages.UNEXPECTED_ERROR),
+        new TransactionRepositoryException(
+          ErrorMessages.UNEXPECTED_ERROR,
+          500,
+          error,
+        ),
       );
     }
   }
@@ -163,9 +167,7 @@ export default class TransactionRepository implements ITransactionRepository {
 
       const models = await queryBuilder.getMany();
 
-      const entities = models.map(model =>
-        TransactionMapper.toEntity(model),
-      );
+      const entities = models.map(model => TransactionMapper.toEntity(model));
 
       return right(entities);
     } catch (error) {
