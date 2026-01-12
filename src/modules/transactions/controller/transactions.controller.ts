@@ -8,16 +8,19 @@ import IExtractTransactionSummaryUseCase, {
 } from '@/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case';
 import IListTransactionCategoriesUseCase from '@/modules/transactions/domain/usecase/i_list_transaction_categories_use_case';
 import IListTransactionsUseCase from '@/modules/transactions/domain/usecase/i_list_transactions_use_case';
+import IUpdateTransactionUseCase from '@/modules/transactions/domain/usecase/i_update_transaction_use_case';
 import { CreateTransactionDto } from '@/modules/transactions/dtos/create_transaction.dto';
 import { CreateTransactionCategoryDto } from '@/modules/transactions/dtos/create_transaction_category.dto';
 import { TransactionCategoryFiltersDto } from '@/modules/transactions/dtos/transaction_category_filters.dto';
 import { TransactionFiltersDto } from '@/modules/transactions/dtos/transaction_filters.dto';
+import UpdateTransactionDto from '@/modules/transactions/dtos/update_transaction.dto';
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
   EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
+  UPDATE_TRANSACTION_SERVICE,
 } from '@/modules/transactions/symbols';
 import UserDto from '@/modules/users/dtos/user.dto';
 import UserModel from '@/modules/users/infra/models/user.model';
@@ -29,6 +32,7 @@ import {
   Inject,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -47,6 +51,8 @@ export default class TransactionsController {
     private readonly listTransactionCategoriesService: IListTransactionCategoriesUseCase,
     @Inject(EXTRACT_TRANSACTION_SUMMARY_SERVICE)
     private readonly extractTransactionSummaryService: IExtractTransactionSummaryUseCase,
+    @Inject(UPDATE_TRANSACTION_SERVICE)
+    private readonly updateTransactionService: IUpdateTransactionUseCase,
   ) {}
 
   @Get('categories')
@@ -85,7 +91,30 @@ export default class TransactionsController {
 
     return result.value.fromResponse();
   }
-
+  @Put(':id')
+  @UseGuards(AuthGuard)
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateTransactionDto,
+    @User() user: UserModel,
+  ) {
+    const result = await this.updateTransactionService.execute({
+      id,
+      userId: user.id,
+      categoryId: dto.categoryId,
+      description: dto.description,
+      amount: dto.amount,
+      type: dto.type,
+      createdAt: dto.createdAt,
+      trasactionLineDetails: dto.transactionLineDetails,
+    });
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
+    }
+    return result.value.fromResponse();
+  }
   @Post()
   @UseGuards(AuthGuard)
   async create(@Body() dto: CreateTransactionDto, @User() user: UserModel) {
@@ -132,7 +161,6 @@ export default class TransactionsController {
   @Get('summary/:period')
   @UseGuards(AuthGuard)
   async extractSummary(@Param('period') period: string) {
-    
     if (!Object.values(ExtractPeriod).includes(period as ExtractPeriod)) {
       throw new Error(
         `Invalid period. Must be one of: ${Object.values(ExtractPeriod).join(', ')}`,

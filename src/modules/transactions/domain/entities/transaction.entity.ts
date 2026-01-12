@@ -104,7 +104,7 @@ export default class TransactionEntity {
       categoryId: this.props.categoryId,
       description: this.props.description,
       transactionLineDetailsId: this.props.transactionLineDetailsId,
-      amount: this.props.amount.inReais,
+      amount: this.props.amount.inCents,
       type: this.props.type,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,

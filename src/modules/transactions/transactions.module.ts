@@ -8,6 +8,7 @@ import CreateTransactionCategoryService from '@/modules/transactions/application
 import ExtractTransactionSummaryService from '@/modules/transactions/application/extract_transaction_summary.service';
 import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
+import UpdateTransactionService from '@/modules/transactions/application/update_transaction.service';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
 import TransactionCreationDomainService from '@/modules/transactions/domain/services/transaction_creation.domain_service';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
@@ -26,6 +27,7 @@ import {
   TRANSACTION_CREATION_DOMAIN_SERVICE,
   TRANSACTION_LINE_DETAILS_REPOSITORY,
   TRANSACTION_REPOSITORY,
+  UPDATE_TRANSACTION_SERVICE,
 } from '@/modules/transactions/symbols';
 import { Module } from '@nestjs/common';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
@@ -84,6 +86,14 @@ import { Repository } from 'typeorm';
           transactionCreationDomainService,
           unitOfWork,
         ),
+    },
+    {
+      inject: [UNIT_OF_WORK, TRANSACTION_CATEGORY_REPOSITORY],
+      provide: UPDATE_TRANSACTION_SERVICE,
+      useFactory: (
+        unitOfWork: IUnitOfWork,
+        categoryRepository: ITransactionCategoryRepository,
+      ) => new UpdateTransactionService(unitOfWork, categoryRepository),
     },
     {
       inject: [TRANSACTION_CATEGORY_REPOSITORY],
