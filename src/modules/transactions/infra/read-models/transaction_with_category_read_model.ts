@@ -4,7 +4,7 @@ import { TransactionLineDetailsEntityProps } from '@/modules/transactions/domain
 
 export default interface TransactionWithCategoryReadModel
   extends Omit<TransactionEntityProps, 'categoryId'> {
-  category: Pick<TransactionCategoryEntityProps, 'name' | 'description'>;
+  category: Pick<TransactionCategoryEntityProps, 'id' | 'name' | 'description'>;
   lineDetails: Pick<
     TransactionLineDetailsEntityProps,
     'amountGo' | 'amountReturn' | 'driveChange'

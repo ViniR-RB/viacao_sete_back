@@ -59,7 +59,7 @@ export default class TransactionRepository implements ITransactionRepository {
           userId: query.userId,
         })
         .leftJoin('t.category', 'c')
-        .addSelect(['c.name', 'c.description'])
+        .addSelect(['c.name', 'c.description', 'c.id'])
         .leftJoin('t.transactionLineDetails', 'tld')
         .addSelect(['tld.amountGo', 'tld.amountReturn', 'tld.driveChange']);
 
