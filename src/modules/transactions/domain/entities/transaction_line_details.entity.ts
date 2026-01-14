@@ -87,13 +87,13 @@ export default class TransactionLineDetailsEntity {
       'id' | 'createdAt' | 'updatedAt'
     >,
   ) {
-    if (props.amountGo.inCents < BigInt(0)) {
+    if (props.amountGo.inCents < 0) {
       throw new TransactionDomainException('Amount go cannot be negative');
     }
-    if (props.amountReturn.inCents < BigInt(0)) {
+    if (props.amountReturn.inCents < 0) {
       throw new TransactionDomainException('Amount return cannot be negative');
     }
-    if (props.driveChange.inCents < BigInt(0)) {
+    if (props.driveChange.inCents < 0) {
       throw new TransactionDomainException('Drive change cannot be negative');
     }
   }

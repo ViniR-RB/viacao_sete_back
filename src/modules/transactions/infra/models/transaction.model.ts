@@ -46,13 +46,11 @@ export default class TransactionModel {
   @Column('varchar', { length: 255 })
   description: string;
 
-  @Column('bigint', {
-    transformer: {
-      to: (value: bigint) => value.toString(),
-      from: (value: string) => BigInt(value),
-    },
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
   })
-  amount: bigint;
+  amount: number;
 
   @Column('enum', { enum: TransactionType })
   type: TransactionType;

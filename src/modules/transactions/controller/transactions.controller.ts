@@ -226,6 +226,7 @@ export default class TransactionsController {
     });
 
     if (result.isLeft()) {
+      console.log(result.value);
       throw new HttpException(result.value.message, result.value.statusCode, {
         cause: result.value.cause,
       });

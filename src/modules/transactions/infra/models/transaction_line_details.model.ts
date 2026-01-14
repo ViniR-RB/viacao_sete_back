@@ -13,25 +13,24 @@ export default class TransactionLineDetailsModel extends BaseModelPrimaryColumnU
   })
   transactionId: string;
 
-  @Column('bigint', {
-    transformer: {
-      to: (value: bigint | null) => value?.toString(),
-      from: (value: string | null) => (value ? BigInt(value) : null),
-    },
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    nullable: true,
   })
-  amountGo: bigint;
-  @Column('bigint', {
-    transformer: {
-      to: (value: bigint | null) => value?.toString(),
-      from: (value: string | null) => (value ? BigInt(value) : null),
-    },
+  amountGo: number | null;
+
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    nullable: true,
   })
-  amountReturn: bigint;
-  @Column('bigint', {
-    transformer: {
-      to: (value: bigint | null) => value?.toString(),
-      from: (value: string | null) => (value ? BigInt(value) : null),
-    },
+  amountReturn: number | null;
+
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
+    nullable: true,
   })
-  driveChange: bigint;
+  driveChange: number | null;
 }

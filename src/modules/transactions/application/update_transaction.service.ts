@@ -44,7 +44,7 @@ export default class UpdateTransactionService
         await this.unitOfWork.rollback();
         return left(transactionFindResult.value);
       }
-      let currentAmount = Amount.fromReais(param.amount || 0);
+      let currentAmount = Amount.from(param.amount || 0);
       let updateTransactionLineUpdate: TransactionLineDetailsEntity | null =
         null;
       if (
@@ -64,11 +64,11 @@ export default class UpdateTransactionService
           await this.unitOfWork.rollback();
           return left(transactionLineDetailsFindeResult.value);
         }
-        const amountGo = Amount.fromReais(param.trasactionLineDetails.amountGo);
-        const amountReturn = Amount.fromReais(
+        const amountGo = Amount.from(param.trasactionLineDetails.amountGo);
+        const amountReturn = Amount.from(
           param.trasactionLineDetails.amountReturn,
         );
-        const driveChange = Amount.fromReais(
+        const driveChange = Amount.from(
           param.trasactionLineDetails.driveChange,
         );
         currentAmount = amountGo

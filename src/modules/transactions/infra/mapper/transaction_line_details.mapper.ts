@@ -13,9 +13,9 @@ export default abstract class TransactionLineDetailsMapper extends BaseMapper<
     return TransactionLineDetailsEntity.fromData({
       id: model.id,
       transactionId: model.transactionId,
-      amountGo: Amount.fromCents(model.amountGo),
-      amountReturn: Amount.fromCents(model.amountReturn),
-      driveChange: Amount.fromCents(model.driveChange),
+      amountGo: Amount.from(model.amountGo || 0),
+      amountReturn: Amount.from(model.amountReturn || 0),
+      driveChange: Amount.from(model.driveChange || 0),
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     });
@@ -26,9 +26,9 @@ export default abstract class TransactionLineDetailsMapper extends BaseMapper<
     return {
       id: entity.id,
       transactionId: entity.transactionId,
-      amountGo: entity.amountGo.inCents,
-      amountReturn: entity.amountReturn.inCents,
-      driveChange: entity.driveChange.inCents,
+      amountGo: entity.amountGo.getValue,
+      amountReturn: entity.amountReturn.getValue,
+      driveChange: entity.driveChange.getValue,
     };
   }
 }

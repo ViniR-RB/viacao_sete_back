@@ -65,13 +65,14 @@ export default class TransactionEntity {
     if (!Object.values(TransactionType).includes(props.type)) {
       throw new TransactionDomainException('Invalid transaction type');
     }
-    if (props.amount.inCents <= BigInt(0)) {
+    if (props.amount.inCents <= 0) {
       throw new TransactionDomainException('Amount must be greater than zero');
     }
   }
 
   addAttachment(attachmentId: string) {
-    const attachmentAlreadyExists = this.props.attachmentsIds.includes(attachmentId);
+    const attachmentAlreadyExists =
+      this.props.attachmentsIds.includes(attachmentId);
     if (attachmentAlreadyExists) {
       throw new TransactionDomainException(
         'Attachment already added to this transaction',
@@ -131,7 +132,7 @@ export default class TransactionEntity {
       categoryId: this.props.categoryId,
       description: this.props.description,
       transactionLineDetailsId: this.props.transactionLineDetailsId,
-      amount: this.props.amount.inCents,
+      amount: this.props.amount.getValue,
       attachmentsIds: this.props.attachmentsIds,
       type: this.props.type,
       createdAt: this.props.createdAt,

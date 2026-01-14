@@ -131,8 +131,8 @@ export default class ExtractTransactionSummaryService
     endDate: Date;
     breakdown: BreakdownSummary;
   } {
-    let incomeTotal = Amount.fromReais(0);
-    let expenseTotal = Amount.fromReais(0);
+    let incomeTotal = Amount.from(0);
+    let expenseTotal = Amount.from(0);
 
     // Initialize breakdown maps
     const dailyMap = new Map<string, DailyTransactionSummary>();
@@ -162,11 +162,11 @@ export default class ExtractTransactionSummaryService
           const income =
             transaction.type === TransactionType.INCOME
               ? amount
-              : Amount.fromReais(0);
+              : Amount.from(0);
           const expense =
             transaction.type === TransactionType.EXPENSE
               ? amount
-              : Amount.fromReais(0);
+              : Amount.from(0);
           dailyMap.set(dayKey, { day: dayKey, income, expense });
         }
       } else if (period === ExtractPeriod.TWELVE_MONTHS) {
@@ -183,11 +183,11 @@ export default class ExtractTransactionSummaryService
           const income =
             transaction.type === TransactionType.INCOME
               ? amount
-              : Amount.fromReais(0);
+              : Amount.from(0);
           const expense =
             transaction.type === TransactionType.EXPENSE
               ? amount
-              : Amount.fromReais(0);
+              : Amount.from(0);
           monthlyMap.set(monthKey, { month: monthKey, income, expense });
         }
       }
@@ -235,8 +235,8 @@ export default class ExtractTransactionSummaryService
       if (!filledMap.has(dayKey)) {
         filledMap.set(dayKey, {
           day: dayKey,
-          income: Amount.fromReais(0),
-          expense: Amount.fromReais(0),
+          income: Amount.from(0),
+          expense: Amount.from(0),
         });
       }
       currentDate.setDate(currentDate.getDate() + 1);
@@ -261,8 +261,8 @@ export default class ExtractTransactionSummaryService
       if (!filledMap.has(monthKey)) {
         filledMap.set(monthKey, {
           month: monthKey,
-          income: Amount.fromReais(0),
-          expense: Amount.fromReais(0),
+          income: Amount.from(0),
+          expense: Amount.from(0),
         });
       }
       currentDate.setMonth(currentDate.getMonth() + 1);

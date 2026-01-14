@@ -28,9 +28,9 @@ export class ExtractTransactionSummaryResponse {
 
   fromResponse() {
     return {
-      totalIncome: this.totalIncome.inReais,
-      totalExpense: this.totalExpense.inReais,
-      netTotal: this.netTotal.inReais,
+      totalIncome: this.totalIncome.getValue,
+      totalExpense: this.totalExpense.getValue,
+      netTotal: this.netTotal.getValue,
       period: this.period,
       startDate: this.startDate,
       endDate: this.endDate,
@@ -48,16 +48,16 @@ export class ExtractTransactionSummaryResponse {
   private breakdownDailyToResponse(breakdown: DailyTransactionSummary[]) {
     return breakdown.map(item => ({
       day: item.day,
-      income: item.income.inReais,
-      expense: item.expense.inReais,
+      income: item.income.getValue,
+      expense: item.expense.getValue,
     }));
   }
 
   private breakdownMonthlyToResponse(breakdown: MonthlyTransactionSummary[]) {
     return breakdown.map(item => ({
       month: item.month,
-      income: item.income.inReais,
-      expense: item.expense.inReais,
+      income: item.income.getValue,
+      expense: item.expense.getValue,
     }));
   }
 }

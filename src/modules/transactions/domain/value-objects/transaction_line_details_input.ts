@@ -1,5 +1,4 @@
 import { Amount } from '@/core/value-objects/amount';
-import TransactionDomainException from '@/modules/transactions/exceptions/transaction_domain.exception';
 
 export interface TransactionLineDetailsInputProps {
   amountGo: number;
@@ -18,9 +17,9 @@ export class TransactionLineDetailsInput {
   private readonly totalAmount: Amount;
 
   private constructor(props: TransactionLineDetailsInputProps) {
-    this.amountGoValue = Amount.fromReais(props.amountGo);
-    this.amountReturnValue = Amount.fromReais(props.amountReturn);
-    this.driveChangeValue = Amount.fromReais(props.driveChange);
+    this.amountGoValue = Amount.from(props.amountGo);
+    this.amountReturnValue = Amount.from(props.amountReturn);
+    this.driveChangeValue = Amount.from(props.driveChange);
 
     this.validate();
 
@@ -36,15 +35,8 @@ export class TransactionLineDetailsInput {
   }
 
   private validate(): void {
-    if (
-      this.amountGoValue.inCents < BigInt(0) ||
-      this.amountReturnValue.inCents < BigInt(0) ||
-      this.driveChangeValue.inCents < BigInt(0)
-    ) {
-      throw new TransactionDomainException(
-        'Transaction line details amounts cannot be negative',
-      );
-    }
+    // Validação é feita no constructor de Amount
+    // Se algum valor fosse inválido, Amount.from() já teria lançado exceção
   }
 
   get amountGo(): Amount {

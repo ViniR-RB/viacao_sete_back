@@ -36,7 +36,7 @@ export default class TransactionCreationDomainService {
   > {
     if (!lineDetailsInput) {
       return right({
-        amount: Amount.fromCents(0),
+        amount: Amount.from(0),
         lineDetailsId: null,
       });
     }
@@ -47,9 +47,9 @@ export default class TransactionCreationDomainService {
       const transactionLineDetails = TransactionLineDetailsEntity.create({
         id: lineDetailsId,
         transactionId,
-        amountGo: Amount.fromReais(lineDetailsInput.amountGo),
-        amountReturn: Amount.fromReais(lineDetailsInput.amountReturn),
-        driveChange: Amount.fromReais(lineDetailsInput.driveChange),
+        amountGo: Amount.from(lineDetailsInput.amountGo),
+        amountReturn: Amount.from(lineDetailsInput.amountReturn),
+        driveChange: Amount.from(lineDetailsInput.driveChange),
       });
 
       const saveResult = await this.transactionLineDetailsRepository.save(

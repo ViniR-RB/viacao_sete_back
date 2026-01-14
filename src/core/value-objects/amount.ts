@@ -1,40 +1,58 @@
 export class Amount {
-  private readonly cents: bigint;
+  private readonly cents: number;
 
-  private constructor(cents: bigint | number) {
+  private constructor(cents: number) {
     this.validate(cents);
-    this.cents = BigInt(cents);
+    this.cents = cents;
   }
 
-  static fromReais(reais: number): Amount {
-    return new Amount(Math.round(reais * 100));
-  }
-
-  static fromCents(cents: number | bigint): Amount {
+  /**
+   * Cria um Amount a partir de um valor em reais
+   * @param reais valor em reais (ex: 10.50)
+   */
+  static from(reais: number): Amount {
+    const cents = Math.round(reais * 100);
     return new Amount(cents);
   }
 
-  private validate(cents: bigint | number): void {
-    if (typeof cents === 'number' && !Number.isFinite(cents)) {
+  /**
+   * Cria um Amount a partir de um valor em centavos
+   * @param cents valor em centavos (ex: 1050)
+   */
+  static fromCents(cents: number): Amount {
+    return new Amount(cents);
+  }
+
+  private validate(cents: number): void {
+    if (!Number.isFinite(cents)) {
       throw new Error('Amount must be a finite number');
     }
   }
 
-  get value(): bigint {
+  /**
+   * Retorna o valor em reais
+   */
+  get getValue(): number {
+    return this.cents / 100;
+  }
+
+  /**
+   * Retorna o valor em centavos
+   */
+  get inCents(): number {
     return this.cents;
   }
 
-  get inReais(): number {
-    return Number(this.cents) / 100;
-  }
-
-  get inCents(): bigint {
-    return this.cents;
-  }
+  /**
+   * Soma dois amounts (operação em centavos)
+   */
   add(other: Amount): Amount {
     return new Amount(this.cents + other.cents);
   }
 
+  /**
+   * Subtrai dois amounts (operação em centavos)
+   */
   subtract(other: Amount): Amount {
     return new Amount(this.cents - other.cents);
   }
@@ -44,10 +62,10 @@ export class Amount {
   }
 
   toString(): string {
-    return `R$ ${(Number(this.cents) / 100).toFixed(2)}`;
+    return `R$ ${(this.cents / 100).toFixed(2)}`;
   }
 
   toJSON(): number {
-    return this.inReais;
+    return this.getValue;
   }
 }
