@@ -1,3 +1,4 @@
+import IAttachmentRepository from '@/modules/attachments/adapters/i_attachment.repository';
 import ITransactionRepository from '@/modules/transactions/adapters/i_transaction.repository';
 import ITransactionLineDetailsRepository from '@/modules/transactions/adapters/i_transaction_line_details.repository';
 
@@ -7,4 +8,5 @@ export default interface IUnitOfWork {
   rollback(): Promise<void>;
   getTransactionRepository(): ITransactionRepository;
   getTransactionLineDetailsRepository(): ITransactionLineDetailsRepository;
+  getAttachmentRepository(): IAttachmentRepository;
 }
