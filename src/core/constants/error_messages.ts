@@ -7,4 +7,5 @@ export default abstract class ErrorMessages {
     'Transaction amount must be invalid';
   static readonly UNAUTHORIZED =
     'You do not have permission to perform this action';
+  static readonly FILE_NOT_FOUND = 'File not found';
 }
