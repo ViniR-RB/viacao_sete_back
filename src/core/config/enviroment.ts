@@ -1,5 +1,11 @@
 import { Transform } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 
 export default class EnvironmentVariables {
   @IsEnum(['dev', 'tst', 'prd'])
@@ -61,4 +67,14 @@ export default class EnvironmentVariables {
   @IsNumber()
   @IsNotEmpty()
   MAX_FILE_SIZE: number;
+
+  @ValidateIf(o => o.NODE_ENV !== 'dev')
+  @IsString()
+  SUPABASE_URL: string;
+  @ValidateIf(o => o.NODE_ENV !== 'dev')
+  @IsString()
+  SUPABASE_STORAGE_BUCKET: string;
+  @ValidateIf(o => o.NODE_ENV !== 'dev')
+  @IsString()
+  SUPABASE_API_KEY: string;
 }
