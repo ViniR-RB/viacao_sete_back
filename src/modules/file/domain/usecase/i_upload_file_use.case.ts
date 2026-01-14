@@ -6,10 +6,10 @@ export type UploadFileParam = BaseFileInterface & {
 };
 
 export class UploadFileResponse {
-  constructor(public readonly fileId: string) {}
+  constructor(public readonly fileName: string) {}
 
   fromResponse() {
-    return { fileId: this.fileId };
+    return { fileName: this.fileName };
   }
 }
 

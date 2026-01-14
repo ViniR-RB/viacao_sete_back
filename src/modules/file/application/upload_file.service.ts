@@ -34,7 +34,7 @@ export default class UploadFileService implements IUploadFileUseCase {
         return left(uploadFileResult.value);
       }
 
-      return right(new UploadFileResponse(fileEntity.id));
+      return right(new UploadFileResponse(fileEntity.filename));
     } catch (error) {
       if (error instanceof AppException) {
         return left(error);

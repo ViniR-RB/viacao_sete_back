@@ -13,7 +13,7 @@ import * as path from 'path';
 
 export default class FileLocalStorage implements IFileStorage {
   constructor(private readonly configurationService: ConfigurationService) {}
-  
+
   getFileUrl(fileName: string): AsyncResult<AppException, string> {
     throw new FileStorageException('Method not implemented.');
   }
@@ -25,7 +25,7 @@ export default class FileLocalStorage implements IFileStorage {
       if (!fs.existsSync(filesDir)) {
         await fs.promises.mkdir(filesDir, { recursive: true });
       }
-      const filePath = path.resolve(filesDir, fileData.originalName);
+      const filePath = path.resolve(filesDir, fileData.filename);
 
       await fs.promises.writeFile(filePath, fileData.buffer);
 
