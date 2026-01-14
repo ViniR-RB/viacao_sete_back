@@ -55,5 +55,10 @@ export default class EnvironmentVariables {
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRES_IN_SECONDS: number;
 
-  static;
+  @Transform(({ value }: { value: string }) =>
+    typeof value === 'string' ? parseInt(value, 10) : value,
+  )
+  @IsNumber()
+  @IsNotEmpty()
+  MAX_FILE_SIZE: number;
 }
