@@ -37,6 +37,10 @@ export default class EnvironmentVariables {
   @IsString()
   JWT_SECRET: string;
 
+  @IsString()
+  @IsNotEmpty()
+  STORAGE_URL: string;
+
   @Transform(({ value }: { value: string }) =>
     typeof value === 'string' ? parseInt(value, 10) : value,
   )
@@ -51,7 +55,5 @@ export default class EnvironmentVariables {
   @IsNotEmpty()
   REFRESH_TOKEN_EXPIRES_IN_SECONDS: number;
 
-
-
-  static
+  static;
 }
