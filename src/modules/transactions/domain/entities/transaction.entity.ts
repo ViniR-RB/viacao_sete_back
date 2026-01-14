@@ -10,6 +10,7 @@ export interface TransactionEntityProps {
   amount: Amount;
   type: TransactionType;
   transactionLineDetailsId: string | null;
+  attachmentsIds: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +19,10 @@ export default class TransactionEntity {
   private constructor(private readonly props: TransactionEntityProps) {}
 
   static create(
-    props: Omit<TransactionEntityProps, 'id' | 'createdAt' | 'updatedAt'> & {
+    props: Omit<
+      TransactionEntityProps,
+      'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds'
+    > & {
       id?: string;
       createdAt: Date | null;
     },
@@ -28,6 +32,7 @@ export default class TransactionEntity {
     return new TransactionEntity({
       ...props,
       id: props.id || crypto.randomUUID(),
+      attachmentsIds: [],
       createdAt: props.createdAt || new Date(),
       updatedAt: new Date(),
     });
@@ -38,7 +43,10 @@ export default class TransactionEntity {
   }
 
   private static validate(
-    props: Omit<TransactionEntityProps, 'id' | 'createdAt' | 'updatedAt'>,
+    props: Omit<
+      TransactionEntityProps,
+      'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds'
+    >,
   ) {
     if (props.userId === undefined) {
       throw new TransactionDomainException('User ID is required');
@@ -60,6 +68,21 @@ export default class TransactionEntity {
     if (props.amount.inCents <= BigInt(0)) {
       throw new TransactionDomainException('Amount must be greater than zero');
     }
+  }
+
+  addAttachment(attachmentId: string) {
+    const attachmentAlreadyExists = this.props.attachmentsIds.includes(attachmentId);
+    if (attachmentAlreadyExists) {
+      throw new TransactionDomainException(
+        'Attachment already added to this transaction',
+      );
+    }
+    this.props.attachmentsIds.push(attachmentId);
+    this.toTouch();
+  }
+
+  private toTouch() {
+    this.props.updatedAt = new Date();
   }
 
   get id() {
@@ -93,6 +116,10 @@ export default class TransactionEntity {
     return this.props.createdAt;
   }
 
+  get attachmentsIds() {
+    return this.props.attachmentsIds;
+  }
+
   get updatedAt() {
     return this.props.updatedAt;
   }
@@ -105,6 +132,7 @@ export default class TransactionEntity {
       description: this.props.description,
       transactionLineDetailsId: this.props.transactionLineDetailsId,
       amount: this.props.amount.inCents,
+      attachmentsIds: this.props.attachmentsIds,
       type: this.props.type,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,

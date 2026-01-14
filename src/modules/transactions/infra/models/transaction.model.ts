@@ -57,6 +57,11 @@ export default class TransactionModel {
   @Column('enum', { enum: TransactionType })
   type: TransactionType;
 
+  @Column('simple-array', {
+    name: 'attachments_ids',
+  })
+  attachmentsIds: string[];
+
   @CreateDateColumn()
   createdAt: Date;
 
