@@ -46,10 +46,12 @@ export default class CreateAttachmentService
 
       const fileId = crypto.randomUUID();
 
+      const fileUrl = `${fileId}.${param.file.originalName.split('.').pop()}`;
+
       const attachmentEntity = AttachmentEntity.create({
         id: attachmentId,
         name: param.name,
-        fileUrl: fileId,
+        fileUrl: fileUrl,
         scope: param.scope,
         entityId: param.entityId,
       });
