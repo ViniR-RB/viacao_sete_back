@@ -2,10 +2,12 @@ import UseCase from '@/core/interface/use_case';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import TransactionCategoryEntity from '@/modules/transactions/domain/entities/transaction-category.entity';
+import TransactionCategoryType from '@/modules/transactions/domain/entities/transaction_category_enum';
 
 export interface ListTransactionCategoriesParam {
   options: PageOptionsEntity;
   name?: string;
+  type?: TransactionCategoryType;
 }
 
 export class ListTransactionCategoriesResponse {

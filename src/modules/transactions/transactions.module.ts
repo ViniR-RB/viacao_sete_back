@@ -1,23 +1,39 @@
 import CoreModule from '@/core/core_module';
+import IUnitOfWork from '@/core/interface/i_unit_of_work';
+import { UNIT_OF_WORK } from '@/core/symbols';
 import AuthModule from '@/modules/auth/auth.module';
-import ITransactionRepository from '@/modules/transactions/adapters/i_transaction.repository';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import CreateTransactionService from '@/modules/transactions/application/create_transaction.service';
 import CreateTransactionCategoryService from '@/modules/transactions/application/create_transaction_category.service';
+import DeleteTransactionService from '@/modules/transactions/application/delete_transaction.service';
+import DeleteTransactionCategoryService from '@/modules/transactions/application/delete_transaction_category.service';
+import ExtractTransactionSummaryService from '@/modules/transactions/application/extract_transaction_summary.service';
 import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
+import UpdateTransactionService from '@/modules/transactions/application/update_transaction.service';
+import UpdateTransactionCategoryService from '@/modules/transactions/application/update_transaction_category.service';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
+import TransactionCreationDomainService from '@/modules/transactions/domain/services/transaction_creation.domain_service';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
+import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import TransactionCategoryRepository from '@/modules/transactions/infra/repositories/transaction-category.repository';
 import TransactionRepository from '@/modules/transactions/infra/repositories/transaction.repository';
+import TransactionLineDetailsRepository from '@/modules/transactions/infra/repositories/transaction_line_details.repository';
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  DELETE_TRANSACTION_CATEGORY_SERVICE,
+  DELETE_TRANSACTION_SERVICE,
+  EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
   TRANSACTION_CATEGORY_REPOSITORY,
+  TRANSACTION_CREATION_DOMAIN_SERVICE,
+  TRANSACTION_LINE_DETAILS_REPOSITORY,
   TRANSACTION_REPOSITORY,
+  UPDATE_TRANSACTION_CATEGORY_SERVICE,
+  UPDATE_TRANSACTION_SERVICE,
 } from '@/modules/transactions/symbols';
 import { Module } from '@nestjs/common';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
@@ -25,7 +41,11 @@ import { Repository } from 'typeorm';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TransactionModel, TransactionCategoryModel]),
+    TypeOrmModule.forFeature([
+      TransactionModel,
+      TransactionCategoryModel,
+      TransactionLineDetailsModel,
+    ]),
     AuthModule,
     CoreModule,
   ],
@@ -44,19 +64,66 @@ import { Repository } from 'typeorm';
         new TransactionCategoryRepository(categoryRepository),
     },
     {
-      inject: [TRANSACTION_REPOSITORY, TRANSACTION_CATEGORY_REPOSITORY],
+      inject: [getRepositoryToken(TransactionLineDetailsModel)],
+      provide: TRANSACTION_LINE_DETAILS_REPOSITORY,
+      useFactory: (repo: Repository<TransactionLineDetailsModel>) =>
+        new TransactionLineDetailsRepository(repo),
+    },
+    {
+      inject: [TRANSACTION_LINE_DETAILS_REPOSITORY],
+      provide: TRANSACTION_CREATION_DOMAIN_SERVICE,
+      useFactory: lineDetailsRepository =>
+        new TransactionCreationDomainService(lineDetailsRepository),
+    },
+    {
+      inject: [
+        UNIT_OF_WORK,
+        TRANSACTION_CATEGORY_REPOSITORY,
+        TRANSACTION_CREATION_DOMAIN_SERVICE,
+      ],
       provide: CREATE_TRANSACTION_SERVICE,
       useFactory: (
-        transactionRepository: ITransactionRepository,
+        unitOfWork: IUnitOfWork,
         categoryRepository: ITransactionCategoryRepository,
+        transactionCreationDomainService: TransactionCreationDomainService,
       ) =>
-        new CreateTransactionService(transactionRepository, categoryRepository),
+        new CreateTransactionService(
+          categoryRepository,
+          transactionCreationDomainService,
+          unitOfWork,
+        ),
+    },
+    {
+      inject: [UNIT_OF_WORK, TRANSACTION_CATEGORY_REPOSITORY],
+      provide: UPDATE_TRANSACTION_SERVICE,
+      useFactory: (
+        unitOfWork: IUnitOfWork,
+        categoryRepository: ITransactionCategoryRepository,
+      ) => new UpdateTransactionService(unitOfWork, categoryRepository),
+    },
+    {
+      inject: [UNIT_OF_WORK],
+      provide: DELETE_TRANSACTION_SERVICE,
+      useFactory: (unitOfWork: IUnitOfWork) =>
+        new DeleteTransactionService(unitOfWork),
     },
     {
       inject: [TRANSACTION_CATEGORY_REPOSITORY],
       provide: CREATE_TRANSACTION_CATEGORY_SERVICE,
       useFactory: (categoryRepository: ITransactionCategoryRepository) =>
         new CreateTransactionCategoryService(categoryRepository),
+    },
+    {
+      inject: [TRANSACTION_CATEGORY_REPOSITORY],
+      provide: UPDATE_TRANSACTION_CATEGORY_SERVICE,
+      useFactory: (categoryRepository: ITransactionCategoryRepository) =>
+        new UpdateTransactionCategoryService(categoryRepository),
+    },
+    {
+      inject: [TRANSACTION_CATEGORY_REPOSITORY],
+      provide: DELETE_TRANSACTION_CATEGORY_SERVICE,
+      useFactory: (categoryRepository: ITransactionCategoryRepository) =>
+        new DeleteTransactionCategoryService(categoryRepository),
     },
     {
       inject: [TRANSACTION_REPOSITORY],
@@ -69,6 +136,12 @@ import { Repository } from 'typeorm';
       provide: LIST_TRANSACTION_CATEGORIES_SERVICE,
       useFactory: (categoryRepository: ITransactionCategoryRepository) =>
         new ListTransactionCategoriesService(categoryRepository),
+    },
+    {
+      inject: [TRANSACTION_REPOSITORY],
+      provide: EXTRACT_TRANSACTION_SUMMARY_SERVICE,
+      useFactory: (transactionRepository: TransactionRepository) =>
+        new ExtractTransactionSummaryService(transactionRepository),
     },
   ],
 })

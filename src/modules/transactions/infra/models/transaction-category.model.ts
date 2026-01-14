@@ -1,3 +1,4 @@
+import TransactionCategoryType from '@/modules/transactions/domain/entities/transaction_category_enum';
 import UserModel from '@/modules/users/infra/models/user.model';
 import {
   Column,
@@ -26,6 +27,12 @@ export default class TransactionCategoryModel {
 
   @Column('varchar', { length: 255, nullable: true })
   description: string | null;
+
+  @Column({
+    type: 'simple-array',
+    name: 'types',
+  })
+  types: TransactionCategoryType[];
 
   @CreateDateColumn()
   createdAt: Date;

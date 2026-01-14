@@ -3,26 +3,44 @@ import AuthGuard from '@/core/guard/auth.guard';
 import { PageOptionsDto } from '@/modules/pagination/dto/page_options.dto';
 import ICreateTransactionCategoryUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_category_use_case';
 import ICreateTransactionUseCase from '@/modules/transactions/domain/usecase/i_create_transaction_use_case';
+import IDeleteTransactionCategoryUseCase from '@/modules/transactions/domain/usecase/i_delete_transaction_category_use_case';
+import IDeleteTransactionUseCase from '@/modules/transactions/domain/usecase/i_delete_transaction_use_case';
+import IExtractTransactionSummaryUseCase, {
+  ExtractPeriod,
+} from '@/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case';
 import IListTransactionCategoriesUseCase from '@/modules/transactions/domain/usecase/i_list_transaction_categories_use_case';
 import IListTransactionsUseCase from '@/modules/transactions/domain/usecase/i_list_transactions_use_case';
+import IUpdateTransactionCategoryUseCase from '@/modules/transactions/domain/usecase/i_update_transaction_category_use_case';
+import IUpdateTransactionUseCase from '@/modules/transactions/domain/usecase/i_update_transaction_use_case';
 import { CreateTransactionDto } from '@/modules/transactions/dtos/create_transaction.dto';
 import { CreateTransactionCategoryDto } from '@/modules/transactions/dtos/create_transaction_category.dto';
 import { TransactionCategoryFiltersDto } from '@/modules/transactions/dtos/transaction_category_filters.dto';
 import { TransactionFiltersDto } from '@/modules/transactions/dtos/transaction_filters.dto';
+import UpdateTransactionDto from '@/modules/transactions/dtos/update_transaction.dto';
+import { UpdateTransactionCategoryDto } from '@/modules/transactions/dtos/update_transaction_category.dto';
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  DELETE_TRANSACTION_CATEGORY_SERVICE,
+  DELETE_TRANSACTION_SERVICE,
+  EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
+  UPDATE_TRANSACTION_CATEGORY_SERVICE,
+  UPDATE_TRANSACTION_SERVICE,
 } from '@/modules/transactions/symbols';
 import UserDto from '@/modules/users/dtos/user.dto';
 import UserModel from '@/modules/users/infra/models/user.model';
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpException,
   Inject,
+  Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -35,10 +53,20 @@ export default class TransactionsController {
     private readonly createTransactionService: ICreateTransactionUseCase,
     @Inject(CREATE_TRANSACTION_CATEGORY_SERVICE)
     private readonly createTransactionCategoryService: ICreateTransactionCategoryUseCase,
+    @Inject(UPDATE_TRANSACTION_CATEGORY_SERVICE)
+    private readonly updateTransactionCategoryService: IUpdateTransactionCategoryUseCase,
+    @Inject(DELETE_TRANSACTION_CATEGORY_SERVICE)
+    private readonly deleteTransactionCategoryService: IDeleteTransactionCategoryUseCase,
     @Inject(LIST_TRANSACTIONS_SERVICE)
     private readonly listTransactionsService: IListTransactionsUseCase,
     @Inject(LIST_TRANSACTION_CATEGORIES_SERVICE)
     private readonly listTransactionCategoriesService: IListTransactionCategoriesUseCase,
+    @Inject(EXTRACT_TRANSACTION_SUMMARY_SERVICE)
+    private readonly extractTransactionSummaryService: IExtractTransactionSummaryUseCase,
+    @Inject(UPDATE_TRANSACTION_SERVICE)
+    private readonly updateTransactionService: IUpdateTransactionUseCase,
+    @Inject(DELETE_TRANSACTION_SERVICE)
+    private readonly deleteTransactionService: IDeleteTransactionUseCase,
   ) {}
 
   @Get('categories')
@@ -49,6 +77,7 @@ export default class TransactionsController {
     const result = await this.listTransactionCategoriesService.execute({
       options,
       name: filters.name,
+      type: filters.type,
     });
 
     if (result.isLeft()) {
@@ -67,6 +96,7 @@ export default class TransactionsController {
       userId: user.id,
       name: dto.name,
       description: dto.description,
+      types: dto.types,
     });
 
     if (result.isLeft()) {
@@ -76,6 +106,69 @@ export default class TransactionsController {
     return result.value.fromResponse();
   }
 
+  @Put('categories/:id')
+  @UseGuards(AuthGuard)
+  async updateCategory(
+    @Param('id') id: string,
+    @Body() dto: UpdateTransactionCategoryDto,
+    @User() user: UserModel,
+  ) {
+    const result = await this.updateTransactionCategoryService.execute({
+      id,
+      userId: user.id,
+      name: dto.name,
+      description: dto.description,
+    });
+
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
+    }
+
+    return result.value.fromResponse();
+  }
+
+  @Delete('categories/:id')
+  @UseGuards(AuthGuard)
+  async deleteCategory(@Param('id') id: string, @User() user: UserModel) {
+    const result = await this.deleteTransactionCategoryService.execute({
+      id,
+      userId: user.id,
+    });
+
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
+    }
+
+    return result.value.fromResponse();
+  }
+  @Put(':id')
+  @UseGuards(AuthGuard)
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateTransactionDto,
+    @User() user: UserModel,
+  ) {
+    const result = await this.updateTransactionService.execute({
+      id,
+      userId: user.id,
+      categoryId: dto.categoryId,
+      description: dto.description,
+      amount: dto.amount,
+      type: dto.type,
+      createdAt: dto.createdAt,
+      trasactionLineDetails: dto.transactionLineDetails,
+    });
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
+    }
+    return result.value.fromResponse();
+  }
   @Post()
   @UseGuards(AuthGuard)
   async create(@Body() dto: CreateTransactionDto, @User() user: UserModel) {
@@ -86,6 +179,7 @@ export default class TransactionsController {
       amount: dto.amount,
       type: dto.type,
       createdAt: dto.createdAt,
+      trasactionLineDetails: dto.transactionLineDetails,
     });
 
     if (result.isLeft()) {
@@ -102,7 +196,6 @@ export default class TransactionsController {
     @Query() options: PageOptionsDto,
     @Query() filters: TransactionFiltersDto,
   ) {
-    console.log('Filters:', filters);
     const result = await this.listTransactionsService.execute({
       userId: user.id,
       options,
@@ -114,6 +207,46 @@ export default class TransactionsController {
 
     if (result.isLeft()) {
       throw result.value;
+    }
+
+    return result.value.fromResponse();
+  }
+
+  @Get('summary/:period')
+  @UseGuards(AuthGuard)
+  async extractSummary(@Param('period') period: string) {
+    if (!Object.values(ExtractPeriod).includes(period as ExtractPeriod)) {
+      throw new Error(
+        `Invalid period. Must be one of: ${Object.values(ExtractPeriod).join(', ')}`,
+      );
+    }
+
+    const result = await this.extractTransactionSummaryService.execute({
+      period: period as ExtractPeriod,
+    });
+
+    if (result.isLeft()) {
+      console.log(result.value);
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
+    }
+
+    return result.value.fromResponse();
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  async delete(@Param('id') id: string, @User() user: UserModel) {
+    const result = await this.deleteTransactionService.execute({
+      id,
+      userId: user.id,
+    });
+
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
     }
 
     return result.value.fromResponse();

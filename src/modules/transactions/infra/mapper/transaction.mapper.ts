@@ -14,8 +14,10 @@ export default abstract class TransactionMapper extends BaseMapper<
       userId: model.userId,
       categoryId: model.categoryId,
       description: model.description,
-      amount: Amount.fromCents(Number(model.amount)),
+      transactionLineDetailsId: model.transactionLineDetailsId,
+      amount: Amount.from(model.amount),
       type: model.type,
+      attachmentsIds: model.attachmentsIds,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     });
@@ -27,7 +29,9 @@ export default abstract class TransactionMapper extends BaseMapper<
       userId: entity.userId,
       categoryId: entity.categoryId,
       description: entity.description,
-      amount: entity.amount.inCents,
+      amount: entity.amount.getValue,
+      transactionLineDetailsId: entity.transactionLineDetailsId,
+      attachmentsIds: entity.attachmentsIds,
       type: entity.type,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
@@ -40,9 +44,23 @@ export default abstract class TransactionMapper extends BaseMapper<
       id: model.id,
       userId: model.userId,
       description: model.description,
-      amount: Amount.fromCents(model.amount),
+      amount: Amount.from(model.amount),
       type: model.type,
+      attachmentsIds: model.attachmentsIds,
+      transactionLineDetailsId: model.transactionLineDetailsId,
+      lineDetails: model.transactionLineDetails
+        ? {
+            amountGo: Amount.from(model.transactionLineDetails.amountGo || 0),
+            amountReturn: Amount.from(
+              model.transactionLineDetails.amountReturn || 0,
+            ),
+            driveChange: Amount.from(
+              model.transactionLineDetails.driveChange || 0,
+            ),
+          }
+        : null,
       category: {
+        id: model.category.id,
         name: model.category.name,
         description: model.category.name,
       },

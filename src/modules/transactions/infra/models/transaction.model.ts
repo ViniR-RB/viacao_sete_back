@@ -1,4 +1,5 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
+import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import UserModel from '@/modules/users/infra/models/user.model';
 import {
   Column,
@@ -6,6 +7,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -30,19 +32,33 @@ export default class TransactionModel {
   @JoinColumn({ name: 'categoryId' })
   category: TransactionCategoryModel;
 
+  @OneToOne(
+    () => TransactionLineDetailsModel,
+    transactionLineDetailsModel => transactionLineDetailsModel.transaction,
+    { nullable: true, onDelete: 'CASCADE' },
+  )
+  @JoinColumn({ name: 'transaction_line_details_id' })
+  transactionLineDetails: TransactionLineDetailsModel | null;
+
+  @Column({ type: 'uuid', nullable: true, name: 'transaction_line_details_id' })
+  transactionLineDetailsId: string | null;
+
   @Column('varchar', { length: 255 })
   description: string;
 
-  @Column('bigint', {
-    transformer: {
-      to: (value: bigint) => value.toString(),
-      from: (value: string) => BigInt(value),
-    },
+  @Column('numeric', {
+    precision: 10,
+    scale: 2,
   })
-  amount: bigint;
+  amount: number;
 
   @Column('enum', { enum: TransactionType })
   type: TransactionType;
+
+  @Column('simple-array', {
+    name: 'attachments_ids',
+  })
+  attachmentsIds: string[];
 
   @CreateDateColumn()
   createdAt: Date;

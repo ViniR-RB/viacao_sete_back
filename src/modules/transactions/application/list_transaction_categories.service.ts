@@ -24,6 +24,7 @@ export default class ListTransactionCategoriesService
         await this.transactionCategoryRepository.findByFiltersPagination(
           param.options,
           param.name,
+          param.type,
         );
 
       if (result.isLeft()) {

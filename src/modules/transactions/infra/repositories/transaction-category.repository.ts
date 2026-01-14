@@ -2,11 +2,13 @@ import ErrorMessages from '@/core/constants/error_messages';
 import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import Unit, { unit } from '@/core/types/unit';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/modules/pagination/domain/entities/page_meta.entity';
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import TransactionCategoryEntity from '@/modules/transactions/domain/entities/transaction-category.entity';
+import TransactionCategoryType from '@/modules/transactions/domain/entities/transaction_category_enum';
 import TransactionCategoryRespositoryException from '@/modules/transactions/exceptions/transaction_category_repository.exception';
 import TransactionCategoryMapper from '@/modules/transactions/infra/mapper/transaction-category.mapper';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
@@ -18,6 +20,7 @@ export default class TransactionCategoryRepository
   constructor(
     private readonly repository: Repository<TransactionCategoryModel>,
   ) {}
+
   create(entity: TransactionCategoryEntity): TransactionCategoryModel {
     return this.repository.create(TransactionCategoryMapper.toModel(entity));
   }
@@ -94,6 +97,7 @@ export default class TransactionCategoryRepository
   async findByFiltersPagination(
     options: PageOptionsEntity,
     name?: string,
+    type?: TransactionCategoryType,
   ): AsyncResult<AppException, PageEntity<TransactionCategoryEntity>> {
     try {
       const skip = options.skip;
@@ -105,6 +109,10 @@ export default class TransactionCategoryRepository
 
       if (name) {
         queryBuilder.where('tc.name ILIKE :name', { name: `%${name}%` });
+      }
+
+      if (type) {
+        queryBuilder.andWhere('tc.types ILIKE :type', { type: `%${type}%` });
       }
 
       const [models, total] = await queryBuilder
@@ -124,6 +132,21 @@ export default class TransactionCategoryRepository
       const pageEntity = new PageEntity(entities, pageMetaEntity);
 
       return right(pageEntity);
+    } catch (error) {
+      return left(
+        new TransactionCategoryRespositoryException(
+          ErrorMessages.UNEXPECTED_ERROR,
+          500,
+          error,
+        ),
+      );
+    }
+  }
+
+  async delete(id: string): AsyncResult<AppException, Unit> {
+    try {
+      await this.repository.delete({ id });
+      return right(unit);
     } catch (error) {
       return left(
         new TransactionCategoryRespositoryException(
