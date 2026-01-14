@@ -1,10 +1,12 @@
 import CoreModule from '@/core/core_module';
 import ConfigurationService from '@/core/services/configuration.service';
+import AttachmentModule from '@/modules/attachments/attachment.module';
 import AuthModule from '@/modules/auth/auth.module';
 import FileModule from '@/modules/file/file.module';
 import TransactionsModule from '@/modules/transactions/transactions.module';
 import UsersModule from '@/modules/users/users.module';
 import { Module } from '@nestjs/common';
+import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as fs from 'fs';
@@ -57,6 +59,14 @@ import { AppService } from './app.service';
         return [];
       },
     }),
+    MulterModule.registerAsync({
+      imports: [CoreModule],
+      inject: [ConfigurationService],
+      useFactory: async (configService: ConfigurationService) => ({
+        limits: { fileSize: configService.get('MAX_FILE_SIZE') },
+      }),
+    }),
+    AttachmentModule,
     FileModule,
     CoreModule,
     UsersModule,
