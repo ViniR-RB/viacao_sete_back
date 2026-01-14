@@ -1,11 +1,17 @@
 import ICreateAttachmentUseCase from '@/modules/attachments/domain/usecase/i_create_attachment_use_case';
+import IFindAttachmentsByEntityIdUseCase from '@/modules/attachments/domain/usecase/i_find_attachments_by_entity_id_use_case';
 import CreateAttachmentDto from '@/modules/attachments/dto/create_attachment.dto';
-import { CREATE_ATTACHMENT_SERVICE } from '@/modules/attachments/symbols';
+import {
+  CREATE_ATTACHMENT_SERVICE,
+  FIND_ATTACHMENTS_BY_ENTITY_ID_SERVICE,
+} from '@/modules/attachments/symbols';
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   Inject,
+  Param,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -15,6 +21,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -25,7 +32,83 @@ export default class AttachmentsController {
   constructor(
     @Inject(CREATE_ATTACHMENT_SERVICE)
     private readonly createAttachmentService: ICreateAttachmentUseCase,
+    @Inject(FIND_ATTACHMENTS_BY_ENTITY_ID_SERVICE)
+    private readonly findAttachmentsByEntityIdService: IFindAttachmentsByEntityIdUseCase,
   ) {}
+
+  @Get('/entity/:entityId')
+  @ApiOperation({
+    summary: 'Get attachments by entity ID',
+    description: 'Retrieve all attachments associated with a specific entity',
+  })
+  @ApiParam({
+    name: 'entityId',
+    type: 'string',
+    format: 'uuid',
+    description: 'The ID of the entity to get attachments for',
+    example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Attachments retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        attachments: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: {
+                type: 'string',
+                format: 'uuid',
+              },
+              name: {
+                type: 'string',
+              },
+              fileUrl: {
+                type: 'string',
+              },
+              scope: {
+                type: 'string',
+              },
+              entityId: {
+                type: 'string',
+                format: 'uuid',
+              },
+              createdAt: {
+                type: 'string',
+                format: 'date-time',
+              },
+              updatedAt: {
+                type: 'string',
+                format: 'date-time',
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid entity ID',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async findByEntityId(@Param('entityId') entityId: string) {
+    const result = await this.findAttachmentsByEntityIdService.execute({
+      entityId,
+    });
+    if (result.isLeft()) {
+      throw new HttpException(result.value.message, result.value.statusCode, {
+        cause: result.value.cause,
+      });
+    }
+    return result.value.fromResponse();
+  }
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
@@ -108,6 +191,6 @@ export default class AttachmentsController {
         cause: result.value.cause,
       });
     }
-    return result.value
+    return result.value;
   }
 }
