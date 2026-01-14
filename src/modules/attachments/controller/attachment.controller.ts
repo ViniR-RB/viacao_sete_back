@@ -108,5 +108,6 @@ export default class AttachmentsController {
         cause: result.value.cause,
       });
     }
+    return result.value
   }
 }
