@@ -14,15 +14,14 @@ import { Module } from '@nestjs/common';
       provide: FILE_STORAGE,
       useFactory: (configurationService: ConfigurationService) => {
         const nodeEnv = configurationService.get('NODE_ENV');
-
-        if (nodeEnv === 'dev') {
-          return new FileLocalStorage(configurationService);
-        } else {
+        if (nodeEnv !== 'dev') {
           return new FileLocalStorage(configurationService);
         }
+        return new FileLocalStorage(configurationService);
       },
     },
     {
+      inject: [FILE_STORAGE],
       provide: UPLOAD_FILE_SERIVICE,
       useFactory: (fileStorage: IFileStorage) => {
         return new UploadFileService(fileStorage);
