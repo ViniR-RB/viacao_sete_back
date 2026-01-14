@@ -1,6 +1,7 @@
 import AppException from '@/core/exceptions/app_exception';
 import BaseRepository from '@/core/interface/base.repository';
 import AsyncResult from '@/core/types/async_result';
+import Unit from '@/core/types/unit';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import TransactionCategoryEntity from '@/modules/transactions/domain/entities/transaction-category.entity';
@@ -18,4 +19,5 @@ export default interface ITransactionCategoryRepository
     name?: string,
     type?: TransactionCategoryType,
   ): AsyncResult<AppException, PageEntity<TransactionCategoryEntity>>;
+  delete(id: string): AsyncResult<AppException, Unit>;
 }

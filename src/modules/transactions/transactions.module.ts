@@ -6,10 +6,12 @@ import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_tr
 import CreateTransactionService from '@/modules/transactions/application/create_transaction.service';
 import CreateTransactionCategoryService from '@/modules/transactions/application/create_transaction_category.service';
 import DeleteTransactionService from '@/modules/transactions/application/delete_transaction.service';
+import DeleteTransactionCategoryService from '@/modules/transactions/application/delete_transaction_category.service';
 import ExtractTransactionSummaryService from '@/modules/transactions/application/extract_transaction_summary.service';
 import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
 import UpdateTransactionService from '@/modules/transactions/application/update_transaction.service';
+import UpdateTransactionCategoryService from '@/modules/transactions/application/update_transaction_category.service';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
 import TransactionCreationDomainService from '@/modules/transactions/domain/services/transaction_creation.domain_service';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
@@ -21,6 +23,7 @@ import TransactionLineDetailsRepository from '@/modules/transactions/infra/repos
 import {
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
+  DELETE_TRANSACTION_CATEGORY_SERVICE,
   DELETE_TRANSACTION_SERVICE,
   EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
@@ -29,6 +32,7 @@ import {
   TRANSACTION_CREATION_DOMAIN_SERVICE,
   TRANSACTION_LINE_DETAILS_REPOSITORY,
   TRANSACTION_REPOSITORY,
+  UPDATE_TRANSACTION_CATEGORY_SERVICE,
   UPDATE_TRANSACTION_SERVICE,
 } from '@/modules/transactions/symbols';
 import { Module } from '@nestjs/common';
@@ -108,6 +112,18 @@ import { Repository } from 'typeorm';
       provide: CREATE_TRANSACTION_CATEGORY_SERVICE,
       useFactory: (categoryRepository: ITransactionCategoryRepository) =>
         new CreateTransactionCategoryService(categoryRepository),
+    },
+    {
+      inject: [TRANSACTION_CATEGORY_REPOSITORY],
+      provide: UPDATE_TRANSACTION_CATEGORY_SERVICE,
+      useFactory: (categoryRepository: ITransactionCategoryRepository) =>
+        new UpdateTransactionCategoryService(categoryRepository),
+    },
+    {
+      inject: [TRANSACTION_CATEGORY_REPOSITORY],
+      provide: DELETE_TRANSACTION_CATEGORY_SERVICE,
+      useFactory: (categoryRepository: ITransactionCategoryRepository) =>
+        new DeleteTransactionCategoryService(categoryRepository),
     },
     {
       inject: [TRANSACTION_REPOSITORY],
