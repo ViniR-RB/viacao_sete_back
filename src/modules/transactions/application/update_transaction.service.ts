@@ -71,10 +71,6 @@ export default class UpdateTransactionService
         const driveChange = Amount.fromCents(
           param.trasactionLineDetails.driveChange,
         );
-        currentAmount = amountGo
-          .add(amountReturn)
-          .add(driveChange)
-          .add(amountGo);
 
         const savedTransactionLineDetails =
           await transactionLineDetailsRepository.save(
@@ -89,6 +85,7 @@ export default class UpdateTransactionService
           await this.unitOfWork.rollback();
           return left(savedTransactionLineDetails.value);
         }
+        currentAmount = savedTransactionLineDetails.value.getTotalAmount();
         updateTransactionLineUpdate = savedTransactionLineDetails.value;
       }
 
