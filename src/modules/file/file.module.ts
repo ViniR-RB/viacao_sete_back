@@ -3,6 +3,7 @@ import ConfigurationService from '@/core/services/configuration.service';
 import IFileStorage from '@/modules/file/adapters/i.file.storage';
 import UploadFileService from '@/modules/file/application/upload_file.service';
 import FileLocalStorage from '@/modules/file/infra/storages/file_local.storage';
+import FileSupabaseStorage from '@/modules/file/infra/storages/file_supabase.storage';
 import { FILE_STORAGE, UPLOAD_FILE_SERIVICE } from '@/modules/file/symbols';
 import { Module } from '@nestjs/common';
 
@@ -15,7 +16,7 @@ import { Module } from '@nestjs/common';
       useFactory: (configurationService: ConfigurationService) => {
         const nodeEnv = configurationService.get('NODE_ENV');
         if (nodeEnv !== 'dev') {
-          return new FileLocalStorage(configurationService);
+          return new FileSupabaseStorage(configurationService);
         }
         return new FileLocalStorage(configurationService);
       },
