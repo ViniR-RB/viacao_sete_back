@@ -47,9 +47,9 @@ export default class TransactionCreationDomainService {
       const transactionLineDetails = TransactionLineDetailsEntity.create({
         id: lineDetailsId,
         transactionId,
-        amountGo: Amount.from(lineDetailsInput.amountGo),
-        amountReturn: Amount.from(lineDetailsInput.amountReturn),
-        driveChange: Amount.from(lineDetailsInput.driveChange),
+        amountGo: Amount.fromCents(lineDetailsInput.amountGo),
+        amountReturn: Amount.fromCents(lineDetailsInput.amountReturn),
+        driveChange: Amount.fromCents(lineDetailsInput.driveChange),
       });
 
       const saveResult = await this.transactionLineDetailsRepository.save(

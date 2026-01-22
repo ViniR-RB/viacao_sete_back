@@ -56,7 +56,7 @@ export default class CreateTransactionService
       // 3. Se não houver detalhes, usar o montante simples
       const transactionAmount =
         param.trasactionLineDetails === null && param.amount
-          ? Amount.from(param.amount)
+          ? Amount.fromCents(param.amount)
           : finalAmount;
 
       // 4. Criar entidade de transação (que valida automaticamente via TransactionEntity.create)
