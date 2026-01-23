@@ -1,0 +1,1441 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-23T12:41:52.589Z",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript"
+    ],
+    "frameworks": [
+      "nestjs"
+    ],
+    "buildTools": [
+      "docker",
+      "docker-compose"
+    ],
+    "testFrameworks": [],
+    "packageManager": "pnpm",
+    "isMonorepo": false,
+    "hasDocker": true,
+    "hasCI": false
+  },
+  "structure": {
+    "totalFiles": 174,
+    "topDirectories": [
+      {
+        "name": "AGENTS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "docker-compose.yml",
+        "fileCount": 1
+      },
+      {
+        "name": "Dockerfile",
+        "fileCount": 1
+      },
+      {
+        "name": "Dockerfile.dev",
+        "fileCount": 1
+      },
+      {
+        "name": "docs",
+        "fileCount": 1
+      },
+      {
+        "name": "eslint.config.mjs",
+        "fileCount": 1
+      },
+      {
+        "name": "files",
+        "fileCount": 0
+      },
+      {
+        "name": "nest-cli.json",
+        "fileCount": 1
+      },
+      {
+        "name": "package.json",
+        "fileCount": 1
+      },
+      {
+        "name": "pnpm-lock.yaml",
+        "fileCount": 1
+      },
+      {
+        "name": "README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "src",
+        "fileCount": 153
+      },
+      {
+        "name": "test",
+        "fileCount": 9
+      },
+      {
+        "name": "tsconfig.build.json",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.json",
+        "fileCount": 1
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".ts",
+        "count": 161
+      },
+      {
+        "extension": ".json",
+        "count": 5
+      },
+      {
+        "extension": ".md",
+        "count": 3
+      },
+      {
+        "extension": ".yaml",
+        "count": 1
+      },
+      {
+        "extension": ".mjs",
+        "count": 1
+      },
+      {
+        "extension": ".yml",
+        "count": 1
+      },
+      {
+        "extension": ".dev",
+        "count": 1
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [
+      {
+        "name": "Services",
+        "description": "Business logic and orchestration",
+        "directories": [
+          "src",
+          "src/core/services",
+          "src/core/exceptions",
+          "src/modules/users/application",
+          "src/modules/transactions/application",
+          "src/modules/file/application",
+          "src/modules/auth/application",
+          "src/modules/attachments/application",
+          "test/modules/transactions/domain/services",
+          "src/modules/users/domain/usecase",
+          "src/modules/transactions/domain/usecase",
+          "src/modules/transactions/domain/services",
+          "src/modules/file/domain/usecase",
+          "src/modules/auth/domain/usecase",
+          "src/modules/attachments/domain/usecase"
+        ],
+        "symbolCount": 75,
+        "dependsOn": [
+          "Controllers"
+        ]
+      },
+      {
+        "name": "Controllers",
+        "description": "Request handling and routing",
+        "directories": [
+          "src",
+          "src/modules/transactions/controller",
+          "src/modules/auth/controller",
+          "src/modules/attachments/controller"
+        ],
+        "symbolCount": 4,
+        "dependsOn": []
+      },
+      {
+        "name": "Config",
+        "description": "Configuration and constants",
+        "directories": [
+          "test/constants/transactions",
+          "src/core/constants",
+          "src/core/config",
+          "."
+        ],
+        "symbolCount": 2,
+        "dependsOn": []
+      },
+      {
+        "name": "Repositories",
+        "description": "Data access and persistence",
+        "directories": [
+          "test/constants/mocks",
+          "src/core/interface",
+          "src/modules/users/exceptions",
+          "src/modules/users/adapters",
+          "src/modules/transactions/exceptions",
+          "src/modules/transactions/adapters",
+          "src/modules/attachments/exceptions",
+          "src/modules/attachments/adapters",
+          "src/modules/users/infra/repositories",
+          "src/modules/transactions/infra/repositories",
+          "src/modules/attachments/infra/repositories"
+        ],
+        "symbolCount": 21,
+        "dependsOn": []
+      },
+      {
+        "name": "Models",
+        "description": "Data structures and domain objects",
+        "directories": [
+          "src/core/mappers",
+          "src/core/interface",
+          "test/modules/transactions/entities",
+          "src/modules/users/exceptions",
+          "src/modules/transactions/exceptions",
+          "src/modules/file/exceptions",
+          "src/modules/attachments/exceptions",
+          "test/modules/transactions/domain/entities",
+          "src/modules/users/infra/models",
+          "src/modules/users/domain/entities",
+          "src/modules/transactions/infra/read-models",
+          "src/modules/transactions/infra/models",
+          "src/modules/transactions/domain/value-objects",
+          "src/modules/transactions/domain/types",
+          "src/modules/transactions/domain/entities",
+          "src/modules/pagination/domain/entities",
+          "src/modules/file/domain/types",
+          "src/modules/file/domain/entities",
+          "src/modules/auth/domain/entities",
+          "src/modules/attachments/infra/models",
+          "src/modules/attachments/domain/types",
+          "src/modules/attachments/domain/entities"
+        ],
+        "symbolCount": 41,
+        "dependsOn": []
+      },
+      {
+        "name": "Components",
+        "description": "UI components and views",
+        "directories": [
+          "src/modules/pagination/dto"
+        ],
+        "symbolCount": 1,
+        "dependsOn": []
+      }
+    ],
+    "patterns": [
+      {
+        "name": "Repository",
+        "confidence": 0.9,
+        "description": "Abstracts data access logic",
+        "occurrences": 10
+      },
+      {
+        "name": "Service Layer",
+        "confidence": 0.85,
+        "description": "Encapsulates business logic in service classes",
+        "occurrences": 21
+      },
+      {
+        "name": "Controller",
+        "confidence": 0.9,
+        "description": "Handles incoming requests and returns responses",
+        "occurrences": 4
+      }
+    ],
+    "entryPoints": [
+      "src/main.ts"
+    ]
+  },
+  "symbols": {
+    "classes": [
+      {
+        "name": "Amount",
+        "kind": "class",
+        "file": "src/core/value-objects/amount.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "AppController",
+        "kind": "class",
+        "file": "src/app.controller.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "AppException",
+        "kind": "class",
+        "file": "src/core/exceptions/app_exception.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "AppModule",
+        "kind": "class",
+        "file": "src/app.module.ts",
+        "line": 79,
+        "exported": true
+      },
+      {
+        "name": "AppService",
+        "kind": "class",
+        "file": "src/app.service.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "AttachmentDomainException",
+        "kind": "class",
+        "file": "src/modules/attachments/exceptions/attachment_domain.exception.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "AttachmentDto",
+        "kind": "class",
+        "file": "src/modules/attachments/dto/attachment.dto.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "AttachmentEntity",
+        "kind": "class",
+        "file": "src/modules/attachments/domain/entities/attachment.entity.ts",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "AttachmentMapper",
+        "kind": "class",
+        "file": "src/modules/attachments/infra/mapper/attachment.mapper.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "AttachmentModel",
+        "kind": "class",
+        "file": "src/modules/attachments/infra/models/attachment.model.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "AttachmentModule",
+        "kind": "class",
+        "file": "src/modules/attachments/attachment.module.ts",
+        "line": 57,
+        "exported": true
+      },
+      {
+        "name": "AttachmentRepository",
+        "kind": "class",
+        "file": "src/modules/attachments/infra/repositories/attachment.repository.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "AttachmentRepositoryException",
+        "kind": "class",
+        "file": "src/modules/attachments/exceptions/attachment_repository.exception.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "AttachmentsController",
+        "kind": "class",
+        "file": "src/modules/attachments/controller/attachment.controller.ts",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "AuthController",
+        "kind": "class",
+        "file": "src/modules/auth/controller/auth.controller.ts",
+        "line": 30,
+        "exported": true
+      },
+      {
+        "name": "AuthGuard",
+        "kind": "class",
+        "file": "src/core/guard/auth.guard.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "AuthModule",
+        "kind": "class",
+        "file": "src/modules/auth/auth.module.ts",
+        "line": 58,
+        "exported": true
+      },
+      {
+        "name": "AuthTokenEntity",
+        "kind": "class",
+        "file": "src/modules/auth/domain/entities/auth_token.entity.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "BaseModelIdGeneratedIncrement",
+        "kind": "class",
+        "file": "src/core/interface/base_model.ts",
+        "line": 21,
+        "exported": true
+      },
+      {
+        "name": "BaseModelPrimaryColumnUuid",
+        "kind": "class",
+        "file": "src/core/interface/base_model.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "ConfigurationService",
+        "kind": "class",
+        "file": "src/core/services/configuration.service.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "CoreModule",
+        "kind": "class",
+        "file": "src/core/core_module.ts",
+        "line": 45,
+        "exported": true
+      },
+      {
+        "name": "CreateAttachmentDto",
+        "kind": "class",
+        "file": "src/modules/attachments/dto/create_attachment.dto.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "CreateAttachmentResponse",
+        "kind": "class",
+        "file": "src/modules/attachments/domain/usecase/i_create_attachment_use_case.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "CreateAttachmentService",
+        "kind": "class",
+        "file": "src/modules/attachments/application/create_attachment.service.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionCategoryDto",
+        "kind": "class",
+        "file": "src/modules/transactions/dtos/create_transaction_category.dto.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionCategoryResponse",
+        "kind": "class",
+        "file": "src/modules/transactions/domain/usecase/i_create_transaction_category_use_case.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionCategoryService",
+        "kind": "class",
+        "file": "src/modules/transactions/application/create_transaction_category.service.ts",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionDto",
+        "kind": "class",
+        "file": "src/modules/transactions/dtos/create_transaction.dto.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionLineDetailsDto",
+        "kind": "class",
+        "file": "src/modules/transactions/dtos/create_transaction_line_details.dto.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionResponse",
+        "kind": "class",
+        "file": "src/modules/transactions/domain/usecase/i_create_transaction_use_case.ts",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionService",
+        "kind": "class",
+        "file": "src/modules/transactions/application/create_transaction.service.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "CreateUserDto",
+        "kind": "class",
+        "file": "src/modules/users/dtos/create_user.dto.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "CreateUserParam",
+        "kind": "class",
+        "file": "src/modules/users/domain/usecase/i_create_user_use_case.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "CreateUserResponse",
+        "kind": "class",
+        "file": "src/modules/users/domain/usecase/i_create_user_use_case.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "CreateUserService",
+        "kind": "class",
+        "file": "src/modules/users/application/create_user.service.ts",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "Credentials",
+        "kind": "class",
+        "file": "src/modules/auth/dtos/credentials.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "DeleteTransactionCategoryResponse",
+        "kind": "class",
+        "file": "src/modules/transactions/domain/usecase/i_delete_transaction_category_use_case.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "DeleteTransactionCategoryService",
+        "kind": "class",
+        "file": "src/modules/transactions/application/delete_transaction_category.service.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "DeleteTransactionResponse",
+        "kind": "class",
+        "file": "src/modules/transactions/domain/usecase/i_delete_transaction_use_case.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "DeleteTransactionService",
+        "kind": "class",
+        "file": "src/modules/transactions/application/delete_transaction.service.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "EmailValidator",
+        "kind": "class",
+        "file": "src/core/validators/email.validator.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "EncryptionService",
+        "kind": "class",
+        "file": "src/core/services/encryption.service.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "EnvironmentVariables",
+        "kind": "class",
+        "file": "src/core/config/enviroment.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "ExtractTransactionSummaryResponse",
+        "kind": "class",
+        "file": "src/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "ExtractTransactionSummaryService",
+        "kind": "class",
+        "file": "src/modules/transactions/application/extract_transaction_summary.service.ts",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "ExtractUserParam",
+        "kind": "class",
+        "file": "src/modules/auth/domain/usecase/i_extract_user_use_case.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "ExtractUserResponse",
+        "kind": "class",
+        "file": "src/modules/auth/domain/usecase/i_extract_user_use_case.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "ExtractUserService",
+        "kind": "class",
+        "file": "src/modules/auth/application/extract_user.service.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "FileDomainException",
+        "kind": "class",
+        "file": "src/modules/file/exceptions/file_domain.exception.ts",
+        "line": 3,
+        "exported": true
+      }
+    ],
+    "interfaces": [
+      {
+        "name": "AttachmentEntityProps",
+        "kind": "interface",
+        "file": "src/modules/attachments/domain/entities/attachment.entity.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "AttachmentQueryOptions",
+        "kind": "interface",
+        "file": "src/modules/attachments/adapters/i_attachment.repository.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "BaseFileInterface",
+        "kind": "interface",
+        "file": "src/modules/file/domain/types/base_file_interface.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "BaseMapper",
+        "kind": "interface",
+        "file": "src/core/interface/base_mapper.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "CreateAttachmentParam",
+        "kind": "interface",
+        "file": "src/modules/attachments/domain/usecase/i_create_attachment_use_case.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionCategoryParam",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_create_transaction_category_use_case.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "CreateTransactionParam",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_create_transaction_use_case.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "DailyTransactionSummary",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/entities/transaction_breakdown.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "DeleteTransactionCategoryParam",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_delete_transaction_category_use_case.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "DeleteTransactionParam",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_delete_transaction_use_case.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "ExtractTransactionSummaryParam",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case.ts",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "FindAttachmentsByEntityIdParam",
+        "kind": "interface",
+        "file": "src/modules/attachments/domain/usecase/i_find_attachments_by_entity_id_use_case.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "IAttachmentRepository",
+        "kind": "interface",
+        "file": "src/modules/attachments/adapters/i_attachment.repository.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "ICreateAttachmentUseCase",
+        "kind": "interface",
+        "file": "src/modules/attachments/domain/usecase/i_create_attachment_use_case.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "ICreateTransactionCategoryUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_create_transaction_category_use_case.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "ICreateTransactionUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_create_transaction_use_case.ts",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "ICreateUserUseCase",
+        "kind": "interface",
+        "file": "src/modules/users/domain/usecase/i_create_user_use_case.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "IDeleteTransactionCategoryUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_delete_transaction_category_use_case.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "IDeleteTransactionUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_delete_transaction_use_case.ts",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "IEncryptionService",
+        "kind": "interface",
+        "file": "src/core/services/encryption.service.ts",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "IExtractTransactionSummaryUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case.ts",
+        "line": 65,
+        "exported": true
+      },
+      {
+        "name": "IExtractUserUseCase",
+        "kind": "interface",
+        "file": "src/modules/auth/domain/usecase/i_extract_user_use_case.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "IFileStorage",
+        "kind": "interface",
+        "file": "src/modules/file/adapters/i.file.storage.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "IFindAttachmentsByEntityIdUseCase",
+        "kind": "interface",
+        "file": "src/modules/attachments/domain/usecase/i_find_attachments_by_entity_id_use_case.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "IListTransactionCategoriesUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_list_transaction_categories_use_case.ts",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "IListTransactionsUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_list_transactions_use_case.ts",
+        "line": 25,
+        "exported": true
+      },
+      {
+        "name": "ILoginUseCase",
+        "kind": "interface",
+        "file": "src/modules/auth/domain/usecase/i_login_use_case.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "IRefreshTokenUseCase",
+        "kind": "interface",
+        "file": "src/modules/auth/domain/usecase/i_refresh_token_use_case.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "ITransactionCategoryRepository",
+        "kind": "interface",
+        "file": "src/modules/transactions/adapters/i_transaction_category.repository.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "ITransactionLineDetailsRepository",
+        "kind": "interface",
+        "file": "src/modules/transactions/adapters/i_transaction_line_details.repository.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "ITransactionRepository",
+        "kind": "interface",
+        "file": "src/modules/transactions/adapters/i_transaction.repository.ts",
+        "line": 29,
+        "exported": true
+      },
+      {
+        "name": "IUnitOfWork",
+        "kind": "interface",
+        "file": "src/core/interface/i_unit_of_work.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "IUpdateTransactionCategoryUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_update_transaction_category_use_case.ts",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "IUpdateTransactionUseCase",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_update_transaction_use_case.ts",
+        "line": 24,
+        "exported": true
+      },
+      {
+        "name": "IUploadFileUseCase",
+        "kind": "interface",
+        "file": "src/modules/file/domain/usecase/i_upload_file_use.case.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "IUserRepository",
+        "kind": "interface",
+        "file": "src/modules/users/adapters/i_user.repository.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "JwtSignPayload",
+        "kind": "interface",
+        "file": "src/core/interface/jwt.payload.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "JwtVerifyPayload",
+        "kind": "interface",
+        "file": "src/core/interface/jwt.payload.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "ListTransactionCategoriesParam",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_list_transaction_categories_use_case.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "ListTransactionsParam",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/usecase/i_list_transactions_use_case.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "MonthlyTransactionSummary",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/entities/transaction_breakdown.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "PageMetaParameters",
+        "kind": "interface",
+        "file": "src/modules/pagination/domain/entities/page_meta_parameters.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "TransactionCategoryEntityProps",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/entities/transaction-category.entity.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "TransactionEntityProps",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/entities/transaction.entity.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "TransactionFindOneQueryOptions",
+        "kind": "interface",
+        "file": "src/modules/transactions/adapters/query/query_options.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "TransactionLineDetailsEntityProps",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/entities/transaction_line_details.entity.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "TransactionLineDetailsFindOneQueryOptions",
+        "kind": "interface",
+        "file": "src/modules/transactions/adapters/query/query_options.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "TransactionLineDetailsInput",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/services/transaction_creation.domain_service.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "TransactionLineDetailsInputProps",
+        "kind": "interface",
+        "file": "src/modules/transactions/domain/value-objects/transaction_line_details_input.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "TransactionPeriodQueryOptions",
+        "kind": "interface",
+        "file": "src/modules/transactions/adapters/i_transaction.repository.ts",
+        "line": 25,
+        "exported": true
+      }
+    ],
+    "functions": [
+      {
+        "name": "validateEnvironmentVariables",
+        "kind": "function",
+        "file": "src/core/config/enviroment.validation.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "bootstrap",
+        "kind": "function",
+        "file": "src/main.ts",
+        "line": 8,
+        "exported": false
+      }
+    ],
+    "types": [
+      {
+        "name": "BreakdownSummary",
+        "kind": "type",
+        "file": "src/modules/transactions/domain/entities/transaction_breakdown.ts",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "Either",
+        "kind": "type",
+        "file": "src/core/types/either.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "UploadFileParam",
+        "kind": "type",
+        "file": "src/modules/file/domain/usecase/i_upload_file_use.case.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "AsyncResult",
+        "kind": "type",
+        "file": "src/core/types/async_result.ts",
+        "line": 4,
+        "exported": false
+      }
+    ],
+    "enums": [
+      {
+        "name": "AttachmentScope",
+        "kind": "enum",
+        "file": "src/modules/attachments/domain/types/attachment-scope.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "ExtractPeriod",
+        "kind": "enum",
+        "file": "src/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "TransactionPeriod",
+        "kind": "enum",
+        "file": "src/modules/transactions/adapters/i_transaction.repository.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "TransactionType",
+        "kind": "enum",
+        "file": "src/modules/transactions/domain/types/transaction-type.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "TransactionCategoryType",
+        "kind": "enum",
+        "file": "src/modules/transactions/domain/entities/transaction_category_enum.ts",
+        "line": 1,
+        "exported": false
+      },
+      {
+        "name": "UserRole",
+        "kind": "enum",
+        "file": "src/modules/users/domain/entities/user.role.ts",
+        "line": 1,
+        "exported": false
+      }
+    ]
+  },
+  "publicAPI": [
+    {
+      "name": "Amount",
+      "kind": "class",
+      "file": "src/core/value-objects/amount.ts",
+      "line": 1,
+      "exported": true
+    },
+    {
+      "name": "AppController",
+      "kind": "class",
+      "file": "src/app.controller.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "AppException",
+      "kind": "class",
+      "file": "src/core/exceptions/app_exception.ts",
+      "line": 1,
+      "exported": true
+    },
+    {
+      "name": "AppModule",
+      "kind": "class",
+      "file": "src/app.module.ts",
+      "line": 79,
+      "exported": true
+    },
+    {
+      "name": "AppService",
+      "kind": "class",
+      "file": "src/app.service.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "AttachmentDomainException",
+      "kind": "class",
+      "file": "src/modules/attachments/exceptions/attachment_domain.exception.ts",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "AttachmentDto",
+      "kind": "class",
+      "file": "src/modules/attachments/dto/attachment.dto.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "AttachmentEntity",
+      "kind": "class",
+      "file": "src/modules/attachments/domain/entities/attachment.entity.ts",
+      "line": 14,
+      "exported": true
+    },
+    {
+      "name": "AttachmentEntityProps",
+      "kind": "interface",
+      "file": "src/modules/attachments/domain/entities/attachment.entity.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "AttachmentMapper",
+      "kind": "class",
+      "file": "src/modules/attachments/infra/mapper/attachment.mapper.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "AttachmentModel",
+      "kind": "class",
+      "file": "src/modules/attachments/infra/models/attachment.model.ts",
+      "line": 9,
+      "exported": true
+    },
+    {
+      "name": "AttachmentModule",
+      "kind": "class",
+      "file": "src/modules/attachments/attachment.module.ts",
+      "line": 57,
+      "exported": true
+    },
+    {
+      "name": "AttachmentQueryOptions",
+      "kind": "interface",
+      "file": "src/modules/attachments/adapters/i_attachment.repository.ts",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "AttachmentRepository",
+      "kind": "class",
+      "file": "src/modules/attachments/infra/repositories/attachment.repository.ts",
+      "line": 20,
+      "exported": true
+    },
+    {
+      "name": "AttachmentRepositoryException",
+      "kind": "class",
+      "file": "src/modules/attachments/exceptions/attachment_repository.exception.ts",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "AttachmentsController",
+      "kind": "class",
+      "file": "src/modules/attachments/controller/attachment.controller.ts",
+      "line": 31,
+      "exported": true
+    },
+    {
+      "name": "AuthController",
+      "kind": "class",
+      "file": "src/modules/auth/controller/auth.controller.ts",
+      "line": 30,
+      "exported": true
+    },
+    {
+      "name": "AuthGuard",
+      "kind": "class",
+      "file": "src/core/guard/auth.guard.ts",
+      "line": 20,
+      "exported": true
+    },
+    {
+      "name": "AuthModule",
+      "kind": "class",
+      "file": "src/modules/auth/auth.module.ts",
+      "line": 58,
+      "exported": true
+    },
+    {
+      "name": "AuthTokenEntity",
+      "kind": "class",
+      "file": "src/modules/auth/domain/entities/auth_token.entity.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "BaseFileInterface",
+      "kind": "interface",
+      "file": "src/modules/file/domain/types/base_file_interface.ts",
+      "line": 1,
+      "exported": true
+    },
+    {
+      "name": "BaseMapper",
+      "kind": "interface",
+      "file": "src/core/interface/base_mapper.ts",
+      "line": 1,
+      "exported": true
+    },
+    {
+      "name": "BaseModelIdGeneratedIncrement",
+      "kind": "class",
+      "file": "src/core/interface/base_model.ts",
+      "line": 21,
+      "exported": true
+    },
+    {
+      "name": "BaseModelPrimaryColumnUuid",
+      "kind": "class",
+      "file": "src/core/interface/base_model.ts",
+      "line": 16,
+      "exported": true
+    },
+    {
+      "name": "BreakdownSummary",
+      "kind": "type",
+      "file": "src/modules/transactions/domain/entities/transaction_breakdown.ts",
+      "line": 15,
+      "exported": true
+    },
+    {
+      "name": "ConfigurationService",
+      "kind": "class",
+      "file": "src/core/services/configuration.service.ts",
+      "line": 6,
+      "exported": true
+    },
+    {
+      "name": "CoreModule",
+      "kind": "class",
+      "file": "src/core/core_module.ts",
+      "line": 45,
+      "exported": true
+    },
+    {
+      "name": "CreateAttachmentDto",
+      "kind": "class",
+      "file": "src/modules/attachments/dto/create_attachment.dto.ts",
+      "line": 6,
+      "exported": true
+    },
+    {
+      "name": "CreateAttachmentParam",
+      "kind": "interface",
+      "file": "src/modules/attachments/domain/usecase/i_create_attachment_use_case.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "CreateAttachmentResponse",
+      "kind": "class",
+      "file": "src/modules/attachments/domain/usecase/i_create_attachment_use_case.ts",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "CreateAttachmentService",
+      "kind": "class",
+      "file": "src/modules/attachments/application/create_attachment.service.ts",
+      "line": 18,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionCategoryDto",
+      "kind": "class",
+      "file": "src/modules/transactions/dtos/create_transaction_category.dto.ts",
+      "line": 7,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionCategoryParam",
+      "kind": "interface",
+      "file": "src/modules/transactions/domain/usecase/i_create_transaction_category_use_case.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionCategoryResponse",
+      "kind": "class",
+      "file": "src/modules/transactions/domain/usecase/i_create_transaction_category_use_case.ts",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionCategoryService",
+      "kind": "class",
+      "file": "src/modules/transactions/application/create_transaction_category.service.ts",
+      "line": 13,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionDto",
+      "kind": "class",
+      "file": "src/modules/transactions/dtos/create_transaction.dto.ts",
+      "line": 18,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionLineDetailsDto",
+      "kind": "class",
+      "file": "src/modules/transactions/dtos/create_transaction_line_details.dto.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionParam",
+      "kind": "interface",
+      "file": "src/modules/transactions/domain/usecase/i_create_transaction_use_case.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionResponse",
+      "kind": "class",
+      "file": "src/modules/transactions/domain/usecase/i_create_transaction_use_case.ts",
+      "line": 19,
+      "exported": true
+    },
+    {
+      "name": "CreateTransactionService",
+      "kind": "class",
+      "file": "src/modules/transactions/application/create_transaction.service.ts",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "CreateUserDto",
+      "kind": "class",
+      "file": "src/modules/users/dtos/create_user.dto.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "CreateUserParam",
+      "kind": "class",
+      "file": "src/modules/users/domain/usecase/i_create_user_use_case.ts",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "CreateUserResponse",
+      "kind": "class",
+      "file": "src/modules/users/domain/usecase/i_create_user_use_case.ts",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "CreateUserService",
+      "kind": "class",
+      "file": "src/modules/users/application/create_user.service.ts",
+      "line": 15,
+      "exported": true
+    },
+    {
+      "name": "Credentials",
+      "kind": "class",
+      "file": "src/modules/auth/dtos/credentials.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "DailyTransactionSummary",
+      "kind": "interface",
+      "file": "src/modules/transactions/domain/entities/transaction_breakdown.ts",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "DeleteTransactionCategoryParam",
+      "kind": "interface",
+      "file": "src/modules/transactions/domain/usecase/i_delete_transaction_category_use_case.ts",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "DeleteTransactionCategoryResponse",
+      "kind": "class",
+      "file": "src/modules/transactions/domain/usecase/i_delete_transaction_category_use_case.ts",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "DeleteTransactionCategoryService",
+      "kind": "class",
+      "file": "src/modules/transactions/application/delete_transaction_category.service.ts",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "DeleteTransactionParam",
+      "kind": "interface",
+      "file": "src/modules/transactions/domain/usecase/i_delete_transaction_use_case.ts",
+      "line": 3,
+      "exported": true
+    }
+  ],
+  "dependencies": {
+    "mostImported": [
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/app.service.ts",
+        "importedBy": 3
+      },
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/app.controller.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/app.module.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/core/services/configuration.service.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/modules/users/domain/entities/user.entity.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/modules/transactions/infra/models/transaction-category.model.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/modules/transactions/domain/entities/transaction.entity.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/home/vini/Desktop/viacao_sete/back/src/modules/transactions/infra/models/transaction.model.ts",
+        "importedBy": 1
+      }
+    ]
+  },
+  "stats": {
+    "totalSymbols": 192,
+    "exportedSymbols": 185,
+    "analysisTimeMs": 746
+  }
+}

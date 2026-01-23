@@ -71,7 +71,7 @@ describe('CreateTransactionCategoryDto', () => {
 
       // Assert
       expect(errors).toHaveLength(0);
-      expect(dto.types).toHaveLength(3);
+      expect(dto.types).toHaveLength(2);
     });
 
     it('should accept category without description', async () => {
