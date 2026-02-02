@@ -1,6 +1,7 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
 import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import UserModel from '@/modules/users/infra/models/user.model';
+import PaymentMethodModel from '@/modules/transactions/infra/models/payment-method.model';
 import {
   Column,
   CreateDateColumn,
@@ -31,6 +32,13 @@ export default class TransactionModel {
   @ManyToOne(() => TransactionCategoryModel)
   @JoinColumn({ name: 'categoryId' })
   category: TransactionCategoryModel;
+
+  @Column({ type: 'uuid', nullable: true, name: 'paymentMethodId' })
+  paymentMethodId: string | null;
+
+  @ManyToOne(() => PaymentMethodModel, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'paymentMethodId' })
+  paymentMethod: PaymentMethodModel | null;
 
   @OneToOne(
     () => TransactionLineDetailsModel,

@@ -46,6 +46,13 @@ export class TransactionDto {
   amount: number;
 
   @ApiProperty({
+    description: 'Payment Method ID of this transaction',
+    example: '123e4567-e89b-12d3-a456-426614174003',
+    nullable: true,
+  })
+  paymentMethodId: string | null;
+
+  @ApiProperty({
     description: 'Transaction type',
     enum: TransactionType,
     example: TransactionType.EXPENSE,

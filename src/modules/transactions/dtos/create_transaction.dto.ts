@@ -19,9 +19,13 @@ export class CreateTransactionDto extends PickType(TransactionDto, [
   'categoryId',
   'description',
   'type',
+  "paymentMethodId",
 ] as const) {
   @IsUUID()
   declare categoryId: string;
+
+  @IsUUID()
+  declare paymentMethodId: string;
 
   @Type(() => TransactionLineDetailsDto)
   @ValidateIf(obj => obj.transactionLineDetails !== null)

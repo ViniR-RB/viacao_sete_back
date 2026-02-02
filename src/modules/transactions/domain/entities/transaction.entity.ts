@@ -9,6 +9,7 @@ export interface TransactionEntityProps {
   description: string;
   amount: Amount;
   type: TransactionType;
+  paymentMethodId: string | null;
   transactionLineDetailsId: string | null;
   attachmentsIds: string[];
   createdAt: Date;
@@ -21,9 +22,10 @@ export default class TransactionEntity {
   static create(
     props: Omit<
       TransactionEntityProps,
-      'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds'
+      'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds' | 'paymentMethodId'
     > & {
       id?: string;
+      paymentMethodId: string;
       createdAt: Date | null;
     },
   ) {
@@ -101,6 +103,10 @@ export default class TransactionEntity {
     return this.props.transactionLineDetailsId;
   }
 
+  get paymentMethodId() {
+    return this.props.paymentMethodId;
+  }
+
   get description() {
     return this.props.description;
   }
@@ -132,6 +138,7 @@ export default class TransactionEntity {
       categoryId: this.props.categoryId,
       description: this.props.description,
       transactionLineDetailsId: this.props.transactionLineDetailsId,
+      paymentMethodId: this.props.paymentMethodId,
       amount: this.props.amount.getValue,
       attachmentsIds: this.props.attachmentsIds,
       type: this.props.type,

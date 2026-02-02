@@ -7,6 +7,7 @@ export interface CreateTransactionParam {
   categoryId: string;
   description: string;
   amount: number | null;
+  paymentMethodId: string
   type: TransactionType;
   createdAt: Date | null;
   trasactionLineDetails: {

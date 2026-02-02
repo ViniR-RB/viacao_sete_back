@@ -66,6 +66,7 @@ export default class CreateTransactionService
         categoryId: param.categoryId,
         description: param.description,
         transactionLineDetailsId: lineDetailsId,
+        paymentMethodId: param.paymentMethodId,
         amount: transactionAmount,
         type: param.type,
         createdAt: param.createdAt,

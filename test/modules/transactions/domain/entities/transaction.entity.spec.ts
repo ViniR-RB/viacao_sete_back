@@ -8,14 +8,16 @@ import TransactionDomainException from '@/modules/transactions/exceptions/transa
 describe('TransactionEntity', () => {
   const createValidProps = (): Omit<
     TransactionEntityProps,
-    'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds'
+    'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds' | 'paymentMethodId'
   > & {
     id?: string;
+    paymentMethodId: string;
     createdAt: Date | null;
   } => ({
     userId: 1,
     categoryId: 'category-123',
     description: 'Test transaction',
+    paymentMethodId: 'payment-method-123',
     amount: Amount.fromCents(10000),
     type: TransactionType.INCOME,
     transactionLineDetailsId: null,
@@ -198,6 +200,7 @@ describe('TransactionEntity', () => {
         type: TransactionType.EXPENSE,
         transactionLineDetailsId: 'line-789',
         attachmentsIds: ['attach-1', 'attach-2'],
+        paymentMethodId: 'payment-method-123',
         createdAt,
         updatedAt,
       };
@@ -322,6 +325,7 @@ describe('TransactionEntity', () => {
         categoryId: validProps.categoryId,
         description: validProps.description,
         transactionLineDetailsId: null,
+        paymentMethodId: validProps.paymentMethodId,
         amount: validProps.amount.getValue,
         attachmentsIds: [],
         type: validProps.type,

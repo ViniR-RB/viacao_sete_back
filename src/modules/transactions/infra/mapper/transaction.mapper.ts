@@ -14,6 +14,7 @@ export default abstract class TransactionMapper extends BaseMapper<
       userId: model.userId,
       categoryId: model.categoryId,
       description: model.description,
+      paymentMethodId: model.paymentMethodId,
       transactionLineDetailsId: model.transactionLineDetailsId,
       amount: Amount.from(model.amount),
       type: model.type,
@@ -30,6 +31,7 @@ export default abstract class TransactionMapper extends BaseMapper<
       categoryId: entity.categoryId,
       description: entity.description,
       amount: entity.amount.getValue,
+      paymentMethodId: entity.paymentMethodId,
       transactionLineDetailsId: entity.transactionLineDetailsId,
       attachmentsIds: entity.attachmentsIds,
       type: entity.type,
@@ -64,6 +66,7 @@ export default abstract class TransactionMapper extends BaseMapper<
         name: model.category.name,
         description: model.category.name,
       },
+      paymentMethodId: model.paymentMethodId,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     };
