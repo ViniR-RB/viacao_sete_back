@@ -95,6 +95,7 @@ export default class UpdateTransactionService
           categoryId: param.categoryId,
           description: param.description,
           amount: currentAmount,
+          paymentMethodId: param.paymentMethodId,
           type: param.type,
           createdAt: param.createdAt,
         }),
