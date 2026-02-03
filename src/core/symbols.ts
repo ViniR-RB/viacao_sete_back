@@ -1,1 +1,3 @@
 export const UNIT_OF_WORK = Symbol('UNIT_OF_WORK');
+export const APP_INTERCEPTOR_MONITORY = Symbol('APP_INTERCEPTOR_MONITORY');
+export const APP_FILTER_MONITORY = Symbol('APP_FILTER_MONITORY');

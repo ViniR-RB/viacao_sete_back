@@ -1,4 +1,5 @@
 import ConfigurationService from '@/core/services/configuration.service';
+import { APP_FILTER_MONITORY } from '@/core/symbols';
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -13,6 +14,7 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+  app.useGlobalFilters(app.get(APP_FILTER_MONITORY));
   const config = app.get(ConfigurationService);
   if (config.get('NODE_ENV') === 'dev') {
     const options = new DocumentBuilder()

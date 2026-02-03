@@ -77,4 +77,8 @@ export default class EnvironmentVariables {
   @ValidateIf(o => o.NODE_ENV !== 'dev')
   @IsString()
   SUPABASE_API_KEY: string;
+
+  @IsString()
+  @ValidateIf(o => o.NODE_ENV === 'prd')
+  SENTRY_DSN: string;
 }
