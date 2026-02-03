@@ -388,4 +388,306 @@ describe('TransactionEntity - Calculate Amount', () => {
       expect(transactionWithPayment.paymentMethodId).toBe('pm-123');
     });
   });
+
+  describe('Update - Atualizar propriedades da transação', () => {
+    describe('Sucesso: Atualizar apenas description', () => {
+      it('deve atualizar description corretamente', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          description: 'Descrição original',
+        };
+
+        const transaction = TransactionEntity.create(props);
+        const novaDescricao = 'Descrição atualizada com sucesso';
+
+        transaction.update({ description: novaDescricao });
+
+        expect(transaction.description).toBe(novaDescricao);
+        expect(transaction.amount.inCents).toBe(10000);
+      });
+    });
+
+    describe('Sucesso: Atualizar apenas type', () => {
+      it('deve atualizar type corretamente', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          type: TransactionType.INCOME,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        transaction.update({ type: TransactionType.EXPENSE });
+
+        expect(transaction.type).toBe(TransactionType.EXPENSE);
+        expect(transaction.amount.inCents).toBe(10000);
+      });
+    });
+
+    describe('Sucesso: Atualizar apenas amountInCents', () => {
+      it('deve atualizar amount corretamente', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          amountInCents: 10000,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        transaction.update({ amountInCents: 25000 });
+
+        expect(transaction.amount.inCents).toBe(25000);
+        expect(transaction.amount.getValue).toBe(250);
+        expect(transaction.transactionLineDetails).toBeNull();
+      });
+    });
+
+    describe('Sucesso: Atualizar apenas categoryId', () => {
+      it('deve atualizar categoryId corretamente', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          categoryId: 'cat-123',
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        transaction.update({ categoryId: 'cat-novo' });
+
+        expect(transaction.categoryId).toBe('cat-novo');
+        expect(transaction.amount.inCents).toBe(10000);
+      });
+    });
+
+    describe('Sucesso: Atualizar apenas paymentMethodId', () => {
+      it('deve atualizar paymentMethodId corretamente', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          paymentMethodId: 'pm-123',
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        transaction.update({ paymentMethodId: 'pm-novo' });
+
+        expect(transaction.paymentMethodId).toBe('pm-novo');
+        expect(transaction.amount.inCents).toBe(10000);
+      });
+    });
+
+    describe('Sucesso: Atualizar apenas transactionLineDetails', () => {
+      it('deve atualizar transactionLineDetails e recalcular amount', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          amountInCents: 10000,
+          transactionLineDetails: null,
+        };
+
+        const transaction = TransactionEntity.create(props);
+        const novoLineDetails = LINE_DETAILS_ALL_COMPONENTS;
+
+        transaction.update({ transactionLineDetails: novoLineDetails });
+
+        expect(transaction.transactionLineDetails).toBeDefined();
+        expect(transaction.transactionLineDetails?.id).toBe(novoLineDetails.id);
+        expect(transaction.amount.inCents).toBe(17500); // 10000 + 5000 + 2500
+        expect(transaction.amount.getValue).toBe(175);
+      });
+    });
+
+    describe('Sucesso: Atualizar múltiplos campos', () => {
+      it('deve atualizar description, type e amountInCents simultaneamente', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          description: 'Original',
+          type: TransactionType.INCOME,
+          amountInCents: 10000,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        transaction.update({
+          description: 'Atualizado',
+          type: TransactionType.EXPENSE,
+          amountInCents: 30000,
+        });
+
+        expect(transaction.description).toBe('Atualizado');
+        expect(transaction.type).toBe(TransactionType.EXPENSE);
+        expect(transaction.amount.inCents).toBe(30000);
+      });
+
+      it('deve atualizar description, type e transactionLineDetails', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          description: 'Original',
+          amountInCents: 10000,
+        };
+
+        const transaction = TransactionEntity.create(props);
+        const novoLineDetails = LINE_DETAILS_ONLY_AMOUNT_GO;
+
+        transaction.update({
+          description: 'Com linha de detalhe',
+          type: TransactionType.EXPENSE,
+          transactionLineDetails: novoLineDetails,
+        });
+
+        expect(transaction.description).toBe('Com linha de detalhe');
+        expect(transaction.type).toBe(TransactionType.EXPENSE);
+        expect(transaction.amount.inCents).toBe(10000);
+        expect(transaction.transactionLineDetails).toBeDefined();
+      });
+    });
+
+    describe('Sucesso: Recálculo automático de amount', () => {
+      it('deve usar lineDetails para calcular amount quando ambos são alterados', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          amountInCents: 5000,
+          transactionLineDetails: null,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        transaction.update({
+          amountInCents: 999999,
+          transactionLineDetails: VALID_LINE_DETAILS,
+        });
+
+     
+        expect(transaction.amount.inCents).toBe(8000);
+        expect(transaction.amount.getValue).toBe(80);
+      });
+
+      it('deve atualizar timestamp updatedAt ao fazer update', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        };
+
+        const transaction = TransactionEntity.create(props);
+        const updatedAtAntes = transaction.updatedAt;
+
+        // Aguardar um pouco para garantir que a data seja diferente
+        setTimeout(() => {
+          transaction.update({ description: 'Nova descrição' });
+          expect(transaction.updatedAt.getTime()).toBeGreaterThan(
+            updatedAtAntes.getTime(),
+          );
+        }, 10);
+      });
+    });
+
+    describe('Erro: Validação no update', () => {
+      it('deve lançar exceção quando description fica vazia', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        expect(() => {
+          transaction.update({ description: 'AB' });
+        }).toThrow(TransactionDomainException);
+
+        expect(() => {
+          transaction.update({ description: 'AB' });
+        }).toThrow('Description is required');
+      });
+
+      it('deve lançar exceção quando type é inválido', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        expect(() => {
+          transaction.update({ type: 'INVALID_TYPE' as any });
+        }).toThrow(TransactionDomainException);
+
+        expect(() => {
+          transaction.update({ type: 'INVALID_TYPE' as any });
+        }).toThrow('Invalid transaction type');
+      });
+
+      it('deve lançar exceção quando amount calculado fica zero', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          amountInCents: 10000,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        expect(() => {
+          transaction.update({ amountInCents: 0 });
+        }).toThrow(TransactionDomainException);
+
+        expect(() => {
+          transaction.update({ amountInCents: 0 });
+        }).toThrow('Amount must be greater than zero');
+      });
+
+      it('deve lançar exceção quando lineDetails tem total zero', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          amountInCents: 10000,
+        };
+
+        const transaction = TransactionEntity.create(props);
+
+        expect(() => {
+          transaction.update({
+            transactionLineDetails: LINE_DETAILS_ZERO_TOTAL,
+          });
+        }).toThrow(TransactionDomainException);
+
+        expect(() => {
+          transaction.update({
+            transactionLineDetails: LINE_DETAILS_ZERO_TOTAL,
+          });
+        }).toThrow('Amount must be greater than zero');
+      });
+    });
+
+    describe('Sucesso: Update não altera propriedades imutáveis', () => {
+      it('não deve alterar id após update', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          id: 'tx-imutavel',
+        };
+
+        const transaction = TransactionEntity.create(props);
+        const idOriginal = transaction.id;
+
+        transaction.update({ description: 'Nova descrição' });
+
+        expect(transaction.id).toBe(idOriginal);
+      });
+
+      it('não deve alterar userId após update', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+          userId: 99,
+        };
+
+        const transaction = TransactionEntity.create(props);
+        const userIdOriginal = transaction.userId;
+
+        transaction.update({ description: 'Nova descrição' });
+
+        expect(transaction.userId).toBe(userIdOriginal);
+      });
+
+      it('não deve alterar createdAt após update', () => {
+        const props = {
+          ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        };
+
+        const transaction = TransactionEntity.create(props);
+        const createdAtOriginal = transaction.createdAt;
+
+        transaction.update({ description: 'Nova descrição' });
+
+        expect(transaction.createdAt).toBe(createdAtOriginal);
+      });
+    });
+  });
 });

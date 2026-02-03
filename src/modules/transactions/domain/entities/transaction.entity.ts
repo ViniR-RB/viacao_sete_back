@@ -77,6 +77,69 @@ export default class TransactionEntity {
     return Amount.fromCents(amountInCents!);
   }
 
+  update(data: {
+    description?: string;
+    type?: TransactionType;
+    amountInCents?: number | null;
+    paymentMethodId?: string | null;
+    categoryId?: string;
+    transactionLineDetails?: TransactionLineDetailsEntity | null;
+    createdAt?: Date;
+  }) {
+    if (data.description !== undefined) {
+      this.props.description = data.description;
+    }
+
+    if (data.type !== undefined) {
+      this.props.type = data.type;
+    }
+
+    if (data.paymentMethodId !== undefined) {
+      this.props.paymentMethodId = data.paymentMethodId;
+    }
+    if (data.categoryId !== undefined) {
+      this.props.categoryId = data.categoryId;
+    }
+    if (data.createdAt !== undefined) {
+      this.props.createdAt = new Date(data.createdAt);
+    }
+
+    // Recalcular amount se amountInCents ou transactionLineDetails foram alterados
+    if (
+      data.amountInCents !== undefined ||
+      data.transactionLineDetails !== undefined
+    ) {
+      const newAmountInCents =
+        data.amountInCents !== undefined ? data.amountInCents : null;
+
+      const newLineDetails =
+        data.transactionLineDetails !== undefined
+          ? data.transactionLineDetails
+          : this.props.transactionLineDetails;
+
+      this.props.amount = TransactionEntity.calculateAmount(
+        newAmountInCents,
+        newLineDetails,
+      );
+
+      if (data.transactionLineDetails !== undefined) {
+        this.props.transactionLineDetails = data.transactionLineDetails;
+      }
+    }
+
+    TransactionEntity.validate({
+      userId: this.props.userId,
+      categoryId: this.props.categoryId,
+      description: this.props.description,
+      amount: this.props.amount,
+      type: this.props.type,
+      paymentMethodId: this.props.paymentMethodId,
+      transactionLineDetails: this.props.transactionLineDetails,
+    });
+
+    this.toTouch();
+  }
+
   private static validate(
     props: Omit<
       TransactionEntityProps,
