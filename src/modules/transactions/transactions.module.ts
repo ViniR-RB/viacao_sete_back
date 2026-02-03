@@ -96,12 +96,22 @@ import { Repository } from 'typeorm';
         ),
     },
     {
-      inject: [UNIT_OF_WORK, TRANSACTION_CATEGORY_REPOSITORY],
+      inject: [
+        UNIT_OF_WORK,
+        TRANSACTION_CATEGORY_REPOSITORY,
+        PAYMENT_METHOD_REPOSITORY,
+      ],
       provide: UPDATE_TRANSACTION_SERVICE,
       useFactory: (
         unitOfWork: IUnitOfWork,
         categoryRepository: ITransactionCategoryRepository,
-      ) => new UpdateTransactionService(unitOfWork, categoryRepository),
+        paymentMethodRepository: IPaymentMethodRepository,
+      ) =>
+        new UpdateTransactionService(
+          unitOfWork,
+          categoryRepository,
+          paymentMethodRepository,
+        ),
     },
     {
       inject: [UNIT_OF_WORK],

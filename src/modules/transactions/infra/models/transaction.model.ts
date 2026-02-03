@@ -43,7 +43,7 @@ export default class TransactionModel {
   @OneToOne(
     () => TransactionLineDetailsModel,
     transactionLineDetailsModel => transactionLineDetailsModel.transaction,
-    { nullable: true, cascade: true },
+    { nullable: true, cascade: true, eager: true },
   )
   transactionLineDetails: TransactionLineDetailsModel | null;
 

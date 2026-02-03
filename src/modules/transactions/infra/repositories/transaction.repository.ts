@@ -135,6 +135,7 @@ export default class TransactionRepository implements ITransactionRepository {
     try {
       let options: FindOneOptions<TransactionModel> = {
         select: query.selectFields,
+        relations: query.relations,
       };
 
       if (query.transactionId) {

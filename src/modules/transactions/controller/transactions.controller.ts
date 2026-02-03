@@ -147,21 +147,16 @@ export default class TransactionsController {
   }
   @Put(':id')
   @UseGuards(AuthGuard)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateTransactionDto,
-    @User() user: UserModel,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateTransactionDto) {
     const result = await this.updateTransactionService.execute({
       id,
-      userId: user.id,
       categoryId: dto.categoryId,
       description: dto.description,
       amount: dto.amount,
       paymentMethodId: dto.paymentMethodId,
       type: dto.type,
+      transactionLineDetails: dto.transactionLineDetails,
       createdAt: dto.createdAt,
-      trasactionLineDetails: dto.transactionLineDetails,
     });
     if (result.isLeft()) {
       throw new HttpException(result.value.message, result.value.statusCode, {
