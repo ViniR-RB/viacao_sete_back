@@ -1,4 +1,5 @@
 import { Amount } from '@/core/value-objects/amount';
+import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
 import TransactionDomainException from '@/modules/transactions/exceptions/transaction_domain.exception';
 
@@ -10,7 +11,7 @@ export interface TransactionEntityProps {
   amount: Amount;
   type: TransactionType;
   paymentMethodId: string | null;
-  transactionLineDetailsId: string | null;
+  transactionLineDetails: TransactionLineDetailsEntity | null;
   attachmentsIds: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -22,26 +23,58 @@ export default class TransactionEntity {
   static create(
     props: Omit<
       TransactionEntityProps,
-      'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds' | 'paymentMethodId'
+      | 'id'
+      | 'createdAt'
+      | 'updatedAt'
+      | 'attachmentsIds'
+      | 'paymentMethodId'
+      | 'amount'
     > & {
       id?: string;
+      amountInCents: number | null;
       paymentMethodId: string;
       createdAt: Date | null;
     },
   ) {
-    this.validate(props);
-
-    return new TransactionEntity({
+    const propsValid: TransactionEntityProps = {
       ...props,
       id: props.id || crypto.randomUUID(),
       attachmentsIds: [],
+      amount: this.calculateAmount(
+        props.amountInCents,
+        props.transactionLineDetails,
+      ),
+      paymentMethodId: props.paymentMethodId || null,
       createdAt: props.createdAt || new Date(),
       updatedAt: new Date(),
-    });
+    };
+    this.validate(propsValid);
+
+    return new TransactionEntity(propsValid);
   }
 
   static fromData(props: TransactionEntityProps) {
     return new TransactionEntity(props);
+  }
+
+  private static calculateAmount(
+    amountInCents: number | null,
+    transactionLineDetails: TransactionLineDetailsEntity | null,
+  ): Amount {
+    const hasAmount = amountInCents !== null;
+    const hasLineDetails = transactionLineDetails !== null;
+
+    if (!hasAmount && !hasLineDetails) {
+      throw new TransactionDomainException(
+        'Either amount or transaction line details must be provided',
+      );
+    }
+
+    if (hasLineDetails) {
+      return transactionLineDetails.getTotalAmount();
+    }
+
+    return Amount.fromCents(amountInCents!);
   }
 
   private static validate(
@@ -99,8 +132,9 @@ export default class TransactionEntity {
   get categoryId() {
     return this.props.categoryId;
   }
-  get transactionLineDetailsId() {
-    return this.props.transactionLineDetailsId;
+
+  get transactionLineDetails() {
+    return this.props.transactionLineDetails;
   }
 
   get paymentMethodId() {
@@ -137,11 +171,13 @@ export default class TransactionEntity {
       userId: this.props.userId,
       categoryId: this.props.categoryId,
       description: this.props.description,
-      transactionLineDetailsId: this.props.transactionLineDetailsId,
       paymentMethodId: this.props.paymentMethodId,
       amount: this.props.amount.getValue,
       attachmentsIds: this.props.attachmentsIds,
       type: this.props.type,
+      transactionLineDetails: this.props.transactionLineDetails
+        ? this.props.transactionLineDetails.toObject()
+        : null,
       createdAt: this.props.createdAt,
       updatedAt: this.props.updatedAt,
     };

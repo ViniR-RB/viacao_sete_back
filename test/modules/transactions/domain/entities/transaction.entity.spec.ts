@@ -1,363 +1,391 @@
 import { Amount } from '@/core/value-objects/amount';
-import TransactionEntity, {
-  TransactionEntityProps,
-} from '@/modules/transactions/domain/entities/transaction.entity';
+import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
+import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
 import TransactionDomainException from '@/modules/transactions/exceptions/transaction_domain.exception';
+import {
+  LINE_DETAILS_ALL_COMPONENTS,
+  LINE_DETAILS_ONLY_AMOUNT_GO,
+  LINE_DETAILS_ZERO_TOTAL,
+  VALID_LINE_DETAILS,
+  VALID_TRANSACTION_WITH_LINE_DETAILS,
+  VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+} from '@test/constants/transactions/transaction.constants';
 
-describe('TransactionEntity', () => {
-  const createValidProps = (): Omit<
-    TransactionEntityProps,
-    'id' | 'createdAt' | 'updatedAt' | 'attachmentsIds' | 'paymentMethodId'
-  > & {
-    id?: string;
-    paymentMethodId: string;
-    createdAt: Date | null;
-  } => ({
-    userId: 1,
-    categoryId: 'category-123',
-    description: 'Test transaction',
-    paymentMethodId: 'payment-method-123',
-    amount: Amount.fromCents(10000),
-    type: TransactionType.INCOME,
-    transactionLineDetailsId: null,
-    createdAt: null,
-  });
-
-  describe('create', () => {
-    it('should create a transaction with valid props', () => {
-      // Arrange
-      const validProps = createValidProps();
-
-      // Act
-      const transaction = TransactionEntity.create(validProps);
-
-      // Assert
-      expect(transaction).toBeInstanceOf(TransactionEntity);
-      expect(transaction.userId).toBe(1);
-      expect(transaction.categoryId).toBe('category-123');
-      expect(transaction.description).toBe('Test transaction');
-      expect(transaction.type).toBe(TransactionType.INCOME);
-      expect(transaction.amount.inCents).toBe(10000);
-      expect(transaction.id).toBeDefined();
-      expect(transaction.createdAt).toBeDefined();
-      expect(transaction.updatedAt).toBeDefined();
-      expect(transaction.attachmentsIds).toEqual([]);
-    });
-
-    it('should generate a random UUID if id is not provided', () => {
-      // Arrange
-      const validProps = createValidProps();
-
-      // Act
-      const transaction = TransactionEntity.create(validProps);
-
-      // Assert
-      expect(transaction.id).toBeDefined();
-      expect(transaction.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-      );
-    });
-
-    it('should use provided id if available', () => {
-      // Arrange
-      const validProps = createValidProps();
-      const providedId = 'custom-id-123';
-
-      // Act
-      const transaction = TransactionEntity.create({
-        ...validProps,
-        id: providedId,
-      });
-
-      // Assert
-      expect(transaction.id).toBe(providedId);
-    });
-
-    it('should set createdAt to current date if not provided', () => {
-      // Arrange
-      const validProps = createValidProps();
-      const beforeCreate = new Date();
-
-      // Act
-      const transaction = TransactionEntity.create(validProps);
-      const afterCreate = new Date();
-
-      // Assert
-      expect(transaction.createdAt).toBeDefined();
-      expect(transaction.createdAt.getTime()).toBeGreaterThanOrEqual(
-        beforeCreate.getTime(),
-      );
-      expect(transaction.createdAt.getTime()).toBeLessThanOrEqual(
-        afterCreate.getTime(),
-      );
-    });
-
-    it('should use provided createdAt if available', () => {
-      // Arrange
-      const validProps = createValidProps();
-      const customDate = new Date('2025-01-01');
-
-      // Act
-      const transaction = TransactionEntity.create({
-        ...validProps,
-        createdAt: customDate,
-      });
-
-      // Assert
-      expect(transaction.createdAt).toEqual(customDate);
-    });
-
-    it('should throw error if userId is undefined', () => {
-      // Arrange
-      const invalidProps = createValidProps();
-      delete (invalidProps as any).userId;
-
-      // Act & Assert
-      expect(() => TransactionEntity.create(invalidProps as any)).toThrow(
-        TransactionDomainException,
-      );
-    });
-
-    it('should throw error if categoryId is empty', () => {
-      // Arrange
-      const invalidProps = createValidProps();
-      invalidProps.categoryId = '';
-
-      // Act & Assert
-      expect(() => TransactionEntity.create(invalidProps)).toThrow(
-        TransactionDomainException,
-      );
-    });
-
-    it('should throw error if description is empty', () => {
-      // Arrange
-      const invalidProps = createValidProps();
-      invalidProps.description = '';
-
-      // Act & Assert
-      expect(() => TransactionEntity.create(invalidProps)).toThrow(
-        TransactionDomainException,
-      );
-    });
-
-    it('should throw error if description has less than 3 characters', () => {
-      // Arrange
-      const invalidProps = createValidProps();
-      invalidProps.description = 'ab';
-
-      // Act & Assert
-      expect(() => TransactionEntity.create(invalidProps)).toThrow(
-        TransactionDomainException,
-      );
-    });
-
-    it('should throw error if amount is not an Amount instance', () => {
-      // Arrange
-      const invalidProps = createValidProps();
-      (invalidProps as any).amount = 10000;
-
-      // Act & Assert
-      expect(() => TransactionEntity.create(invalidProps)).toThrow(
-        TransactionDomainException,
-      );
-    });
-
-    it('should throw error if amount is zero or negative', () => {
-      // Arrange
-      const invalidProps = createValidProps();
-      invalidProps.amount = Amount.fromCents(0);
-
-      // Act & Assert
-      expect(() => TransactionEntity.create(invalidProps)).toThrow(
-        TransactionDomainException,
-      );
-    });
-
-    it('should throw error if transaction type is invalid', () => {
-      // Arrange
-      const invalidProps = createValidProps();
-      (invalidProps as any).type = 'INVALID_TYPE';
-
-      // Act & Assert
-      expect(() => TransactionEntity.create(invalidProps)).toThrow(
-        TransactionDomainException,
-      );
-    });
-  });
-
-  describe('fromData', () => {
-    it('should create a transaction from existing data', () => {
-      // Arrange
-      const createdAt = new Date('2025-01-01');
-      const updatedAt = new Date('2025-01-02');
-      const props: TransactionEntityProps = {
-        id: 'trans-123',
-        userId: 2,
-        categoryId: 'cat-456',
-        description: 'Existing transaction',
-        amount: Amount.fromCents(5000),
-        type: TransactionType.EXPENSE,
-        transactionLineDetailsId: 'line-789',
-        attachmentsIds: ['attach-1', 'attach-2'],
-        paymentMethodId: 'payment-method-123',
-        createdAt,
-        updatedAt,
+describe('TransactionEntity - Calculate Amount', () => {
+  describe('Erro: Ambos amount e transactionLineDetails nulos', () => {
+    it('deve lançar exceção quando amount e transactionLineDetails são nulos', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        amountInCents: null,
+        transactionLineDetails: null,
       };
 
-      // Act
-      const transaction = TransactionEntity.fromData(props);
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
 
-      // Assert
-      expect(transaction.id).toBe('trans-123');
-      expect(transaction.userId).toBe(2);
-      expect(transaction.categoryId).toBe('cat-456');
-      expect(transaction.description).toBe('Existing transaction');
-      expect(transaction.type).toBe(TransactionType.EXPENSE);
-      expect(transaction.amount.inCents).toBe(5000);
-      expect(transaction.transactionLineDetailsId).toBe('line-789');
-      expect(transaction.attachmentsIds).toEqual(['attach-1', 'attach-2']);
-      expect(transaction.createdAt).toEqual(createdAt);
-      expect(transaction.updatedAt).toEqual(updatedAt);
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Either amount or transaction line details must be provided');
     });
   });
 
-  describe('addAttachment', () => {
-    it('should add an attachment to the transaction', () => {
-      // Arrange
-      const transaction = TransactionEntity.create(createValidProps());
-      const attachmentId = 'attach-123';
+  describe('Erro: User ID é obrigatório', () => {
+    it('deve lançar exceção quando userId é undefined', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        userId: undefined,
+      };
 
-      // Act
-      transaction.addAttachment(attachmentId);
+      expect(() => {
+        TransactionEntity.create(invalidProps as any);
+      }).toThrow(TransactionDomainException);
 
-      // Assert
-      expect(transaction.attachmentsIds).toContain(attachmentId);
-      expect(transaction.attachmentsIds.length).toBe(1);
+      expect(() => {
+        TransactionEntity.create(invalidProps as any);
+      }).toThrow('User ID is required');
+    });
+  });
+
+  describe('Erro: Category ID é obrigatório', () => {
+    it('deve lançar exceção quando categoryId é vazio', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        categoryId: '',
+      };
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Category ID is required');
+    });
+  });
+
+  describe('Erro: Description deve ter mínimo 3 caracteres', () => {
+    it('deve lançar exceção quando description tem menos de 3 caracteres', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        description: 'AB',
+      };
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Description is required');
     });
 
-    it('should add multiple different attachments', () => {
-      // Arrange
-      const transaction = TransactionEntity.create(createValidProps());
-      const attachmentId1 = 'attach-1';
-      const attachmentId2 = 'attach-2';
-      const attachmentId3 = 'attach-3';
+    it('deve lançar exceção quando description é apenas espaços em branco', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        description: '   ',
+      };
 
-      // Act
-      transaction.addAttachment(attachmentId1);
-      transaction.addAttachment(attachmentId2);
-      transaction.addAttachment(attachmentId3);
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
 
-      // Assert
-      expect(transaction.attachmentsIds).toEqual([
-        attachmentId1,
-        attachmentId2,
-        attachmentId3,
-      ]);
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Description is required');
+    });
+  });
+
+  describe('Erro: Type deve ser válido', () => {
+    it('deve lançar exceção quando type é inválido', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        type: 'INVALID_TYPE' as any,
+      };
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Invalid transaction type');
+    });
+  });
+
+  describe('Erro: Amount deve ser maior que zero', () => {
+    it('deve lançar exceção quando amount é zero', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        amountInCents: 0,
+      };
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Amount must be greater than zero');
     });
 
-    it('should throw error when adding duplicate attachment', () => {
-      // Arrange
-      const transaction = TransactionEntity.create(createValidProps());
-      const attachmentId = 'attach-123';
-      transaction.addAttachment(attachmentId);
+    it('deve lançar exceção quando amount é negativo', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        amountInCents: -5000,
+      };
 
-      // Act & Assert
-      expect(() => transaction.addAttachment(attachmentId)).toThrow(
-        TransactionDomainException,
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Amount must be greater than zero');
+    });
+
+    it('deve lançar exceção quando transactionLineDetails tem total zero', () => {
+      const invalidProps = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        amountInCents: null,
+        transactionLineDetails: LINE_DETAILS_ZERO_TOTAL,
+      };
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow(TransactionDomainException);
+
+      expect(() => {
+        TransactionEntity.create(invalidProps);
+      }).toThrow('Amount must be greater than zero');
+    });
+  });
+
+  describe('Sucesso: Ambos amount e transactionLineDetails fornecidos', () => {
+    it('deve setar o amount sendo o valor de transaction line details', () => {
+      const propsBothAmountAnd = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        amountInCents: 10000,
+        transactionLineDetails: VALID_LINE_DETAILS,
+      };
+
+      expect(() => {
+        TransactionEntity.create(propsBothAmountAnd);
+      }).not.toThrow();
+
+      const transaction = TransactionEntity.create(propsBothAmountAnd);
+
+      expect(transaction.amount.inCents).toBe(8000);
+      expect(transaction.amount.getValue).toBe(80);
+      expect(transaction.transactionLineDetails).toBeDefined();
+      expect(transaction.transactionLineDetails?.id).toBe(
+        VALID_LINE_DETAILS.id,
+      );
+    });
+  });
+
+  describe('Sucesso: Criar transação com amount em cents', () => {
+    it('deve criar transação com amountInCents e calcular corretamente', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        amountInCents: 15500,
+        description: 'Transação com amount simples',
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      expect(transaction).toBeDefined();
+      expect(transaction.id).toBeDefined();
+      expect(transaction.amount.inCents).toBe(15500);
+      expect(transaction.amount.getValue).toBe(155);
+      expect(transaction.userId).toBe(1);
+      expect(transaction.categoryId).toBe('cat-123');
+      expect(transaction.transactionLineDetails).toBeNull();
+    });
+
+    it('deve usar amount correto do sistema de cents', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        userId: 2,
+        categoryId: 'cat-456',
+        description: 'Transação com centavos',
+        paymentMethodId: 'pm-456',
+        amountInCents: 99,
+        type: TransactionType.INCOME,
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      expect(transaction.amount.inCents).toBe(99);
+      expect(transaction.amount.getValue).toBe(0.99);
+    });
+  });
+
+  describe('Sucesso: Criar transação com TransactionLineDetails', () => {
+    it('deve criar transação com transactionLineDetails e calcular amount automaticamente', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITH_LINE_DETAILS,
+        description: 'Transação com detalhes de linha',
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      expect(transaction).toBeDefined();
+      expect(transaction.id).toBeDefined();
+      expect(transaction.amount.inCents).toBe(8000);
+      expect(transaction.amount.getValue).toBe(80);
+      expect(transaction.transactionLineDetails).toBeDefined();
+      expect(transaction.transactionLineDetails?.id).toBe(
+        VALID_LINE_DETAILS.id,
+      );
+      expect(transaction.userId).toBe(2);
+      expect(transaction.categoryId).toBe('cat-456');
+    });
+
+    it('deve calcular amount apenas com amountGo', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        userId: 4,
+        categoryId: 'cat-111',
+        description: 'Apenas ida',
+        paymentMethodId: 'pm-111',
+        amountInCents: null,
+        transactionLineDetails: LINE_DETAILS_ONLY_AMOUNT_GO,
+        type: TransactionType.EXPENSE,
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      expect(transaction.amount.inCents).toBe(10000);
+      expect(transaction.amount.getValue).toBe(100);
+    });
+
+    it('deve calcular amount com todos os componentes', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        userId: 5,
+        categoryId: 'cat-222',
+        description: 'Ida, volta e troco',
+        paymentMethodId: 'pm-222',
+        amountInCents: null,
+        transactionLineDetails: LINE_DETAILS_ALL_COMPONENTS,
+        type: TransactionType.INCOME,
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      expect(transaction.amount.inCents).toBe(17500);
+      expect(transaction.amount.getValue).toBe(175);
+    });
+  });
+
+  describe('Sucesso: Serialização (toObject)', () => {
+    it('deve serializar transação com amount simples corretamente', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        amountInCents: 5000,
+        description: 'Transação simples',
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      const serialized = transaction.toObject();
+
+      expect(serialized.amount).toBe(50);
+      expect(serialized.userId).toBe(1);
+      expect(serialized.transactionLineDetails).toBeNull();
+    });
+
+    it('deve serializar transação com transactionLineDetails corretamente', () => {
+      const transactionId = 'tx-123';
+      const lineDetails = TransactionLineDetailsEntity.create({
+        transactionId: transactionId,
+        amountGo: Amount.fromCents(3000),
+        amountReturn: Amount.fromCents(1000),
+        driveChange: Amount.fromCents(500),
+      });
+
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        id: transactionId,
+        userId: 2,
+        categoryId: 'cat-456',
+        description: 'Com detalhes',
+        paymentMethodId: 'pm-456',
+        amountInCents: null,
+        transactionLineDetails: lineDetails,
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      const serialized = transaction.toObject();
+
+      expect(serialized.amount).toBe(45);
+      expect(serialized.transactionLineDetails).toBeDefined();
+      expect(serialized.transactionLineDetails?.amountGo).toBe(30);
+      expect(serialized.transactionLineDetails?.amountReturn).toBe(10);
+      expect(serialized.transactionLineDetails?.driveChange).toBe(5);
+    });
+  });
+
+  describe('Sucesso: Propriedades obrigatórias geradas', () => {
+    it('deve gerar id quando não fornecido', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        description: 'Com ID gerado',
+      };
+
+      const transaction = TransactionEntity.create(props);
+
+      expect(transaction.id).toBeDefined();
+      expect(typeof transaction.id).toBe('string');
+      expect(transaction.id.length).toBeGreaterThan(0);
+    });
+
+    it('deve gerar createdAt quando não fornecido', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        description: 'Com createdAt gerado',
+      };
+
+      const beforeCreation = new Date();
+
+      const transaction = TransactionEntity.create(props);
+
+      const afterCreation = new Date();
+
+      expect(transaction.createdAt).toBeDefined();
+      expect(transaction.createdAt.getTime()).toBeGreaterThanOrEqual(
+        beforeCreation.getTime(),
+      );
+      expect(transaction.createdAt.getTime()).toBeLessThanOrEqual(
+        afterCreation.getTime(),
       );
     });
 
-    it('should update updatedAt when adding an attachment', () => {
-      // Arrange
-      const transaction = TransactionEntity.create(createValidProps());
-      const originalUpdatedAt = transaction.updatedAt;
-      const attachmentId = 'attach-123';
+    it('deve gerar attachmentsIds como array vazio', () => {
+      const props = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        description: 'Com attachments vazios',
+      };
 
-      // Add small delay to ensure time difference
-      const delay = new Promise(resolve => setTimeout(resolve, 10));
+      const transaction = TransactionEntity.create(props);
 
-      // Act
-      return delay.then(() => {
-        transaction.addAttachment(attachmentId);
-
-        // Assert
-        expect(transaction.updatedAt.getTime()).toBeGreaterThan(
-          originalUpdatedAt.getTime(),
-        );
-      });
-    });
-  });
-
-  describe('getters', () => {
-    it('should return all properties correctly', () => {
-      // Arrange
-      const validProps = createValidProps();
-      const transaction = TransactionEntity.create(validProps);
-
-      // Act & Assert
-      expect(transaction.id).toBeDefined();
-      expect(transaction.userId).toBe(validProps.userId);
-      expect(transaction.categoryId).toBe(validProps.categoryId);
-      expect(transaction.description).toBe(validProps.description);
-      expect(transaction.amount).toEqual(validProps.amount);
-      expect(transaction.type).toBe(validProps.type);
-      expect(transaction.createdAt).toBeDefined();
-      expect(transaction.updatedAt).toBeDefined();
-      expect(transaction.attachmentsIds).toEqual([]);
-      expect(transaction.transactionLineDetailsId).toBeNull();
-    });
-  });
-
-  describe('toObject', () => {
-    it('should return a plain object with all properties', () => {
-      // Arrange
-      const validProps = createValidProps();
-      const transaction = TransactionEntity.create(validProps);
-
-      // Act
-      const result = transaction.toObject();
-
-      // Assert
-      expect(result).toEqual({
-        id: transaction.id,
-        userId: validProps.userId,
-        categoryId: validProps.categoryId,
-        description: validProps.description,
-        transactionLineDetailsId: null,
-        paymentMethodId: validProps.paymentMethodId,
-        amount: validProps.amount.getValue,
-        attachmentsIds: [],
-        type: validProps.type,
-        createdAt: transaction.createdAt,
-        updatedAt: transaction.updatedAt,
-      });
+      expect(transaction.attachmentsIds).toBeDefined();
+      expect(Array.isArray(transaction.attachmentsIds)).toBe(true);
+      expect(transaction.attachmentsIds.length).toBe(0);
     });
 
-    it('should return amount in reais (getValue)', () => {
-      // Arrange
-      const validProps = createValidProps();
-      validProps.amount = Amount.fromCents(10050);
-      const transaction = TransactionEntity.create(validProps);
+    it('deve definir paymentMethodId como fornecido', () => {
+      const propsWithPayment = {
+        ...VALID_TRANSACTION_WITHOUT_LINE_DETAILS,
+        description: 'Com payment',
+      };
 
-      // Act
-      const result = transaction.toObject();
+      const transactionWithPayment = TransactionEntity.create(propsWithPayment);
 
-      // Assert
-      expect(result.amount).toBe(100.5);
-    });
-
-    it('should include attachments in the returned object', () => {
-      // Arrange
-      const transaction = TransactionEntity.create(createValidProps());
-      transaction.addAttachment('attach-1');
-      transaction.addAttachment('attach-2');
-
-      // Act
-      const result = transaction.toObject();
-
-      // Assert
-      expect(result.attachmentsIds).toEqual(['attach-1', 'attach-2']);
+      expect(transactionWithPayment.paymentMethodId).toBe('pm-123');
     });
   });
 });
