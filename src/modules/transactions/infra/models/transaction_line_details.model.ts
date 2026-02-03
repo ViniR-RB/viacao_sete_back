@@ -1,11 +1,20 @@
-import { BaseModelPrimaryColumnUuid } from '@/core/interface/base_model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
-import { Column, Entity, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 
 @Entity('transaction_line_details')
-export default class TransactionLineDetailsModel extends BaseModelPrimaryColumnUuid {
-  @OneToOne(() => TransactionModel, transaction => transaction.id)
-  transaction: TransactionModel;
+export default class TransactionLineDetailsModel {
+  @PrimaryColumn('uuid')
+  id: string;
+
+  @OneToOne(
+    () => TransactionModel,
+    transaction => transaction.transactionLineDetails,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
+  @JoinColumn({ name: 'transaction_id' })
+  transaction?: TransactionModel;
 
   @Column({
     type: 'uuid',

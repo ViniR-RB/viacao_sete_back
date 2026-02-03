@@ -1,7 +1,7 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
+import PaymentMethodModel from '@/modules/transactions/infra/models/payment-method.model';
 import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import UserModel from '@/modules/users/infra/models/user.model';
-import PaymentMethodModel from '@/modules/transactions/infra/models/payment-method.model';
 import {
   Column,
   CreateDateColumn,
@@ -43,13 +43,9 @@ export default class TransactionModel {
   @OneToOne(
     () => TransactionLineDetailsModel,
     transactionLineDetailsModel => transactionLineDetailsModel.transaction,
-    { nullable: true, onDelete: 'CASCADE' },
+    { nullable: true, cascade: true },
   )
-  @JoinColumn({ name: 'transaction_line_details_id' })
   transactionLineDetails: TransactionLineDetailsModel | null;
-
-  @Column({ type: 'uuid', nullable: true, name: 'transaction_line_details_id' })
-  transactionLineDetailsId: string | null;
 
   @Column('varchar', { length: 255 })
   description: string;
