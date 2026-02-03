@@ -18,7 +18,6 @@ import UpdateTransactionService from '@/modules/transactions/application/update_
 import UpdateTransactionCategoryService from '@/modules/transactions/application/update_transaction_category.service';
 import PaymentMethodController from '@/modules/transactions/controller/payment-method.controller';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
-import TransactionCreationDomainService from '@/modules/transactions/domain/services/transaction_creation.domain_service';
 import PaymentMethodModel from '@/modules/transactions/infra/models/payment-method.model';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
@@ -26,7 +25,6 @@ import TransactionLineDetailsModel from '@/modules/transactions/infra/models/tra
 import PaymentMethodRepository from '@/modules/transactions/infra/repositories/payment-method.repository';
 import TransactionCategoryRepository from '@/modules/transactions/infra/repositories/transaction-category.repository';
 import TransactionRepository from '@/modules/transactions/infra/repositories/transaction.repository';
-import TransactionLineDetailsRepository from '@/modules/transactions/infra/repositories/transaction_line_details.repository';
 import {
   CREATE_PAYMENT_METHOD_SERVICE,
   CREATE_TRANSACTION_CATEGORY_SERVICE,
@@ -40,8 +38,6 @@ import {
   LIST_TRANSACTIONS_SERVICE,
   PAYMENT_METHOD_REPOSITORY,
   TRANSACTION_CATEGORY_REPOSITORY,
-  TRANSACTION_CREATION_DOMAIN_SERVICE,
-  TRANSACTION_LINE_DETAILS_REPOSITORY,
   TRANSACTION_REPOSITORY,
   UPDATE_TRANSACTION_CATEGORY_SERVICE,
   UPDATE_TRANSACTION_SERVICE,
@@ -76,38 +72,23 @@ import { Repository } from 'typeorm';
         new TransactionCategoryRepository(categoryRepository),
     },
     {
-      inject: [getRepositoryToken(TransactionLineDetailsModel)],
-      provide: TRANSACTION_LINE_DETAILS_REPOSITORY,
-      useFactory: (repo: Repository<TransactionLineDetailsModel>) =>
-        new TransactionLineDetailsRepository(repo),
-    },
-    {
       inject: [getRepositoryToken(PaymentMethodModel)],
       provide: PAYMENT_METHOD_REPOSITORY,
       useFactory: (repo: Repository<PaymentMethodModel>) =>
         new PaymentMethodRepository(repo),
     },
     {
-      inject: [TRANSACTION_LINE_DETAILS_REPOSITORY],
-      provide: TRANSACTION_CREATION_DOMAIN_SERVICE,
-      useFactory: lineDetailsRepository =>
-        new TransactionCreationDomainService(lineDetailsRepository),
-    },
-    {
       inject: [
         UNIT_OF_WORK,
         TRANSACTION_CATEGORY_REPOSITORY,
-        TRANSACTION_CREATION_DOMAIN_SERVICE,
       ],
       provide: CREATE_TRANSACTION_SERVICE,
       useFactory: (
         unitOfWork: IUnitOfWork,
         categoryRepository: ITransactionCategoryRepository,
-        transactionCreationDomainService: TransactionCreationDomainService,
       ) =>
         new CreateTransactionService(
           categoryRepository,
-          transactionCreationDomainService,
           unitOfWork,
         ),
     },
