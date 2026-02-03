@@ -3,7 +3,10 @@ import { TransactionEntityProps } from '@/modules/transactions/domain/entities/t
 import { TransactionLineDetailsEntityProps } from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 
 export default interface TransactionWithCategoryReadModel
-  extends Omit<TransactionEntityProps, 'categoryId'> {
+  extends Omit<
+    TransactionEntityProps,
+    'categoryId' | 'transactionLineDetails'
+  > {
   category: Pick<TransactionCategoryEntityProps, 'id' | 'name' | 'description'>;
   lineDetails: Pick<
     TransactionLineDetailsEntityProps,
