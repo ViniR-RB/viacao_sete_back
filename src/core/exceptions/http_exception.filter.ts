@@ -16,8 +16,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   constructor(
     private readonly monitoryService: IMonitoryService,
     private readonly configurationService: ConfigurationService,
-  ) {
-  }
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -61,7 +60,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     nodeEnv: string,
   ): void {
     try {
-      const shouldCapture = nodeEnv === 'prd';
+      const shouldCapture = ['prd', 'dev'].includes(nodeEnv);
 
       if (!shouldCapture) {
         return;
