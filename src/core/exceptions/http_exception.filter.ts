@@ -17,7 +17,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
     private readonly monitoryService: IMonitoryService,
     private readonly configurationService: ConfigurationService,
   ) {
-    console.log('HttpExceptionFilter initialized', this.monitoryService);
   }
 
   catch(exception: unknown, host: ArgumentsHost): void {
