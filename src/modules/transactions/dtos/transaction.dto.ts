@@ -1,4 +1,5 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
+import TransactionLineDetailsDto from '@/modules/transactions/dtos/transaction_line_details.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsPositive, IsString, MinLength } from 'class-validator';
 
@@ -20,12 +21,6 @@ export class TransactionDto {
     example: '123e4567-e89b-12d3-a456-426614174002',
   })
   categoryId: string;
-
-  @ApiProperty({
-    description: 'ID of this transaction line details',
-    example: '123e4567-e89b-12d3-a456-426614174002',
-  })
-  transactionLineDetailsId: string;
 
   @ApiProperty({
     description: 'Transaction description',
@@ -51,6 +46,22 @@ export class TransactionDto {
     nullable: true,
   })
   paymentMethodId: string | null;
+
+  @ApiProperty({
+    description: 'Transaction line details',
+    type: () => TransactionLineDetailsDto,
+    nullable: true,
+    example: {
+      id: '123e4567-e89b-12d3-a456-426614174004',
+      transactionId: '123e4567-e89b-12d3-a456-426614174000',
+      amountGo: 20000,
+      amountReturn: 5000,
+      driveChange: 15000,
+      createdAt: '2024-01-07T10:30:00Z',
+      updatedAt: '2024-01-07T15:45:00Z',
+    },
+  })
+  transactionLineDetails: TransactionLineDetailsDto | null;
 
   @ApiProperty({
     description: 'Transaction type',

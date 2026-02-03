@@ -81,14 +81,17 @@ import { Repository } from 'typeorm';
       inject: [
         UNIT_OF_WORK,
         TRANSACTION_CATEGORY_REPOSITORY,
+        PAYMENT_METHOD_REPOSITORY,
       ],
       provide: CREATE_TRANSACTION_SERVICE,
       useFactory: (
         unitOfWork: IUnitOfWork,
         categoryRepository: ITransactionCategoryRepository,
+        paymentMethodRepository: IPaymentMethodRepository,
       ) =>
         new CreateTransactionService(
           categoryRepository,
+          paymentMethodRepository,
           unitOfWork,
         ),
     },
