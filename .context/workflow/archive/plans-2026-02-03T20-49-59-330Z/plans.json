@@ -1,0 +1,14 @@
+{
+  "active": [
+    {
+      "slug": "ci-pipeline",
+      "path": "plans/ci-pipeline.md",
+      "title": "CI Pipeline for Test Enforcement",
+      "summary": "Create a CI pipeline that runs all tests and enforces passing tests before allowing merge/commit, using MCP ai-context and agents for automation.",
+      "linkedAt": "2026-01-23T13:15:10.020Z",
+      "status": "active"
+    }
+  ],
+  "completed": [],
+  "primary": "ci-pipeline"
+}
