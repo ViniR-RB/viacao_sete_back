@@ -19,6 +19,7 @@ import UpdateTransactionCategoryService from '@/modules/transactions/application
 import PaymentMethodController from '@/modules/transactions/controller/payment-method.controller';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
 import PaymentMethodModel from '@/modules/transactions/infra/models/payment-method.model';
+import SplitPaymentModel from '@/modules/transactions/infra/models/split_payment.model';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
@@ -53,6 +54,7 @@ import { Repository } from 'typeorm';
       TransactionCategoryModel,
       TransactionLineDetailsModel,
       PaymentMethodModel,
+      SplitPaymentModel,
     ]),
     AuthModule,
     CoreModule,
