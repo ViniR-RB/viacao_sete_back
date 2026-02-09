@@ -7,6 +7,7 @@ import { left, right } from '@/core/types/either';
 import { Amount } from '@/core/value-objects/amount';
 import IPaymentMethodRepository from '@/modules/transactions/adapters/i_payment_method.repository';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
+import SplitPaymentEntity from '@/modules/transactions/domain/entities/split_payment.entity';
 import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 import IUpdateTransactionUseCase, {
   UpdateTransactionParam,
@@ -52,23 +53,63 @@ export default class UpdateTransactionService
         }
       }
 
-      if (
-        param.paymentMethodId !== undefined &&
-        param.paymentMethodId !== transaction.paymentMethodId
-      ) {
-        if (param.paymentMethodId !== null) {
-          const paymentMethodResult =
-            await this.paymentMethodRepository.findOneById(
-              param.paymentMethodId,
-            );
-          if (paymentMethodResult.isLeft()) {
+      let splitPayments: SplitPaymentEntity[] = transaction.splitPayments;
+
+      if (param.splitPayments !== undefined && param.splitPayments.length > 0) {
+        const paymentMethodIds = new Set(
+          param.splitPayments.map(sp => sp.paymentMethodId),
+        );
+
+        const paymentMethodResults = await Promise.all(
+          [...paymentMethodIds].map(paymentMethodId =>
+            this.paymentMethodRepository.findOneById(paymentMethodId),
+          ),
+        );
+
+        const paymentMethodErrors = paymentMethodResults
+          .filter(result => result.isLeft() === true)
+          .map(result => (result.isLeft() ? result.value : null))
+          .filter(value => value !== null);
+
+        if (paymentMethodErrors.length > 0) {
+          await this.unitOfWork.rollback();
+          return left(paymentMethodErrors[0]);
+        }
+
+        // Criar/atualizar todos os split payments do param
+        const updatedSplitPayments = param.splitPayments.map(sp =>
+          SplitPaymentEntity.create({
+            id: sp.id,
+            paymentMethodId: sp.paymentMethodId,
+            transactionId: transaction.id,
+            amount: sp.amount,
+          }),
+        );
+
+        const updatedSplitPaymentIds = new Set(
+          updatedSplitPayments.map(sp => sp.id),
+        );
+        const splitPaymentsToDelete = transaction.splitPayments.filter(
+          sp => !updatedSplitPaymentIds.has(sp.id),
+        );
+
+        // Remover split payments que não estão mais na lista
+        if (splitPaymentsToDelete.length > 0) {
+          const deletionIds = splitPaymentsToDelete.map(sp => sp.id);
+          const result =
+            await transactionRepository.deleteSplitPaymentsByIds(deletionIds);
+
+          if (result.isLeft()) {
             await this.unitOfWork.rollback();
-            return left(paymentMethodResult.value);
+            return left(result.value);
           }
         }
+
+        splitPayments = updatedSplitPayments;
       }
 
-      let lineDetails: TransactionLineDetailsEntity | null = null;
+      let lineDetails: TransactionLineDetailsEntity | null =
+        transaction.transactionLineDetails;
 
       if (
         param.transactionLineDetails &&
@@ -94,7 +135,7 @@ export default class UpdateTransactionService
         description: param.description,
         type: param.type,
         amountInCents: param.amount,
-        paymentMethodId: param.paymentMethodId,
+        splitPayments: splitPayments,
         categoryId: param.categoryId,
         transactionLineDetails: lineDetails,
         createdAt: param.createdAt,

@@ -7,7 +7,11 @@ export interface UpdateTransactionParam {
   description?: string;
   type?: TransactionType;
   amount?: number | null;
-  paymentMethodId?: string | null;
+  splitPayments?: {
+    id?: string;
+    paymentMethodId: string;
+    amount: number;
+  }[];
   categoryId?: string;
   createdAt?: Date;
   transactionLineDetails?: {
