@@ -1,4 +1,5 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
+import SplitPaymentDto from '@/modules/transactions/dtos/split_payment.dto';
 import TransactionLineDetailsDto from '@/modules/transactions/dtos/transaction_line_details.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsPositive, IsString, MinLength } from 'class-validator';
@@ -41,11 +42,10 @@ export class TransactionDto {
   amount: number;
 
   @ApiProperty({
-    description: 'Payment Method ID of this transaction',
-    example: '123e4567-e89b-12d3-a456-426614174003',
-    nullable: true,
+    description: 'List of split payments associated with this transaction',
+    type: () => [SplitPaymentDto],
   })
-  paymentMethodId: string | null;
+  splitPayments: Array<SplitPaymentDto>;
 
   @ApiProperty({
     description: 'Transaction line details',
