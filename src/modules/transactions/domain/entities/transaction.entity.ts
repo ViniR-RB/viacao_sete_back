@@ -1,4 +1,5 @@
 import { Amount } from '@/core/value-objects/amount';
+import SplitPaymentEntity from '@/modules/transactions/domain/entities/split_payment.entity';
 import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
 import TransactionDomainException from '@/modules/transactions/exceptions/transaction_domain.exception';
@@ -10,7 +11,7 @@ export interface TransactionEntityProps {
   description: string;
   amount: Amount;
   type: TransactionType;
-  paymentMethodId: string | null;
+  splitPayments: SplitPaymentEntity[];
   transactionLineDetails: TransactionLineDetailsEntity | null;
   attachmentsIds: string[];
   createdAt: Date;
@@ -27,12 +28,12 @@ export default class TransactionEntity {
       | 'createdAt'
       | 'updatedAt'
       | 'attachmentsIds'
-      | 'paymentMethodId'
+      | 'splitPayments'
       | 'amount'
     > & {
       id?: string;
       amountInCents: number | null;
-      paymentMethodId: string;
+      splitPayments: SplitPaymentEntity[];
       createdAt: Date | null;
     },
   ) {
@@ -44,12 +45,15 @@ export default class TransactionEntity {
         props.amountInCents,
         props.transactionLineDetails,
       ),
-      paymentMethodId: props.paymentMethodId || null,
+      splitPayments: props.splitPayments,
       createdAt: props.createdAt || new Date(),
       updatedAt: new Date(),
     };
     this.validate(propsValid);
-
+    this.validateAmountBasedInSplitPayment(
+      propsValid.amount,
+      propsValid.splitPayments,
+    );
     return new TransactionEntity(propsValid);
   }
 
@@ -63,7 +67,6 @@ export default class TransactionEntity {
   ): Amount {
     const hasAmount = amountInCents !== null;
     const hasLineDetails = transactionLineDetails !== null;
-
     if (!hasAmount && !hasLineDetails) {
       throw new TransactionDomainException(
         'Either amount or transaction line details must be provided',
@@ -77,13 +80,29 @@ export default class TransactionEntity {
     return Amount.fromCents(amountInCents!);
   }
 
+  private static validateAmountBasedInSplitPayment(
+    totalAmount: Amount,
+    splitPayments: SplitPaymentEntity[],
+  ) {
+    const totalSplitAmount = splitPayments.reduce(
+      (acc, sp) => acc + sp.amount.inCents,
+      0,
+    );
+
+    if (totalAmount.inCents !== totalSplitAmount) {
+      throw new TransactionDomainException(
+        'The sum of split payments must equal the total transaction amount',
+      );
+    }
+  }
+
   update(data: {
     description?: string;
     type?: TransactionType;
     amountInCents?: number | null;
-    paymentMethodId?: string | null;
     categoryId?: string;
     transactionLineDetails?: TransactionLineDetailsEntity | null;
+    splitPayments?: SplitPaymentEntity[];
     createdAt?: Date;
   }) {
     if (data.description !== undefined) {
@@ -94,20 +113,20 @@ export default class TransactionEntity {
       this.props.type = data.type;
     }
 
-    if (data.paymentMethodId !== undefined) {
-      this.props.paymentMethodId = data.paymentMethodId;
-    }
     if (data.categoryId !== undefined) {
       this.props.categoryId = data.categoryId;
     }
     if (data.createdAt !== undefined) {
       this.props.createdAt = new Date(data.createdAt);
     }
+    if (data.splitPayments !== undefined) {
+      this.props.splitPayments = data.splitPayments;
+    }
 
     // Recalcular amount se amountInCents ou transactionLineDetails foram alterados
     if (
-      data.amountInCents !== undefined ||
-      data.transactionLineDetails !== undefined
+      typeof data.amountInCents === 'number' ||
+      data.transactionLineDetails instanceof TransactionLineDetailsEntity
     ) {
       const newAmountInCents =
         data.amountInCents !== undefined ? data.amountInCents : null;
@@ -133,9 +152,14 @@ export default class TransactionEntity {
       description: this.props.description,
       amount: this.props.amount,
       type: this.props.type,
-      paymentMethodId: this.props.paymentMethodId,
+      splitPayments: this.props.splitPayments,
       transactionLineDetails: this.props.transactionLineDetails,
     });
+
+    TransactionEntity.validateAmountBasedInSplitPayment(
+      this.props.amount,
+      this.props.splitPayments,
+    );
 
     this.toTouch();
   }
@@ -165,6 +189,12 @@ export default class TransactionEntity {
     }
     if (props.amount.inCents <= 0) {
       throw new TransactionDomainException('Amount must be greater than zero');
+    }
+    if (
+      !Array.isArray(props.splitPayments) ||
+      props.splitPayments.length === 0
+    ) {
+      throw new TransactionDomainException('Split payments are required');
     }
   }
 
@@ -200,10 +230,6 @@ export default class TransactionEntity {
     return this.props.transactionLineDetails;
   }
 
-  get paymentMethodId() {
-    return this.props.paymentMethodId;
-  }
-
   get description() {
     return this.props.description;
   }
@@ -224,6 +250,10 @@ export default class TransactionEntity {
     return this.props.attachmentsIds;
   }
 
+  get splitPayments() {
+    return this.props.splitPayments;
+  }
+
   get updatedAt() {
     return this.props.updatedAt;
   }
@@ -234,7 +264,7 @@ export default class TransactionEntity {
       userId: this.props.userId,
       categoryId: this.props.categoryId,
       description: this.props.description,
-      paymentMethodId: this.props.paymentMethodId,
+      splitPayments: this.props.splitPayments.map(sp => sp.toObject()),
       amount: this.props.amount.getValue,
       attachmentsIds: this.props.attachmentsIds,
       type: this.props.type,
