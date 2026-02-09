@@ -1,12 +1,14 @@
 import AppException from '@/core/exceptions/app_exception';
 import BaseRepository from '@/core/interface/base.repository';
 import AsyncResult from '@/core/types/async_result';
+import Unit from '@/core/types/unit';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options.entity';
 import { TransactionFindOneQueryOptions } from '@/modules/transactions/adapters/query/query_options';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
+import TransactionWithTypeCreatedAndAmount from '@/modules/transactions/infra/read-models/transaction_with_type_created_and_amount';
 
 export interface TransactionQueryOptions {
   userId: number;
@@ -36,6 +38,7 @@ export default interface ITransactionRepository
   ): AsyncResult<AppException, TransactionEntity>;
   findByPeriod(
     query: TransactionPeriodQueryOptions,
-  ): AsyncResult<AppException, TransactionEntity[]>;
+  ): AsyncResult<AppException, TransactionWithTypeCreatedAndAmount[]>;
   delete(entity: TransactionEntity): AsyncResult<AppException, void>;
+  deleteSplitPaymentsByIds(ids: string[]): AsyncResult<AppException, Unit>;
 }
