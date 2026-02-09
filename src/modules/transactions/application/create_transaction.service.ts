@@ -7,6 +7,7 @@ import { left, right } from '@/core/types/either';
 import { Amount } from '@/core/value-objects/amount';
 import IPaymentMethodRepository from '@/modules/transactions/adapters/i_payment_method.repository';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
+import SplitPaymentEntity from '@/modules/transactions/domain/entities/split_payment.entity';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
 import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 import ICreateTransactionUseCase, {
@@ -29,16 +30,12 @@ export default class CreateTransactionService
     try {
       this.unitOfWork.start();
 
-      const results = await Promise.all([
-        this.transactionCategoryRepository.findOneById(param.categoryId),
-        this.paymentMethodRepository.findOneById(param.paymentMethodId),
-      ]);
+      const transactionCategoryResult =
+        await this.transactionCategoryRepository.findOneById(param.categoryId);
 
-      for (const result of results) {
-        if (result.isLeft()) {
-          await this.unitOfWork.rollback();
-          return left(result.value);
-        }
+      if (transactionCategoryResult.isLeft()) {
+        await this.unitOfWork.rollback();
+        return left(transactionCategoryResult.value);
       }
 
       const transactionId = crypto.randomUUID();
@@ -57,6 +54,14 @@ export default class CreateTransactionService
           transactionId: transactionId,
         });
       }
+      const splitPayments = param.splitPayments.map(sp =>
+        SplitPaymentEntity.create({
+          id: sp.id,
+          paymentMethodId: sp.paymentMethodId,
+          transactionId: transactionId,
+          amount: sp.amount,
+        }),
+      );
 
       const transaction = TransactionEntity.create({
         id: transactionId,
@@ -64,7 +69,7 @@ export default class CreateTransactionService
         categoryId: param.categoryId,
         description: param.description,
         transactionLineDetails: lineDetails,
-        paymentMethodId: param.paymentMethodId,
+        splitPayments: splitPayments,
         amountInCents: param.amount,
         type: param.type,
         createdAt: param.createdAt,
@@ -79,10 +84,7 @@ export default class CreateTransactionService
       }
 
       const savedTransaction = saveResult.value;
-      console.log(
-        'Saved Transaction:',
-        savedTransaction.transactionLineDetails,
-      );
+
       await this.unitOfWork.commit();
       return right(new CreateTransactionResponse(savedTransaction));
     } catch (error) {
