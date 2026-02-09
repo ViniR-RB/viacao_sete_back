@@ -1,7 +1,9 @@
 import BaseMapper from '@/core/mappers/base.mapper';
 import { Amount } from '@/core/value-objects/amount';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
+import SplitPaymentMapper from '@/modules/transactions/infra/mapper/split_payment.mapper';
 import TransactionLineDetailsMapper from '@/modules/transactions/infra/mapper/transaction_line_details.mapper';
+import SplitPaymentModel from '@/modules/transactions/infra/models/split_payment.model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
 
@@ -15,7 +17,7 @@ export default abstract class TransactionMapper extends BaseMapper<
       userId: model.userId,
       categoryId: model.categoryId,
       description: model.description,
-      paymentMethodId: model.paymentMethodId,
+      splitPayments: model.splitPayments.map(SplitPaymentMapper.toEntity),
       transactionLineDetails: model.transactionLineDetails
         ? TransactionLineDetailsMapper.toEntity(model.transactionLineDetails)
         : null,
@@ -34,7 +36,9 @@ export default abstract class TransactionMapper extends BaseMapper<
       categoryId: entity.categoryId,
       description: entity.description,
       amount: entity.amount.getValue,
-      paymentMethodId: entity.paymentMethodId,
+      splitPayments: entity.splitPayments.map(
+        SplitPaymentMapper.toModel,
+      ) as SplitPaymentModel[],
       transactionLineDetails: entity.transactionLineDetails
         ? TransactionLineDetailsMapper.toModel(entity.transactionLineDetails)
         : null,
@@ -54,12 +58,19 @@ export default abstract class TransactionMapper extends BaseMapper<
       amount: Amount.from(model.amount),
       type: model.type,
       attachmentsIds: model.attachmentsIds,
+      splitPayments: model.splitPayments.map(sp => ({
+        id: sp.id,
+        transactionId: sp.transactionId,
+        paymentMethodId: sp.paymentMethodId,
+        amount: Amount.from(sp.amount),
+      })),
       lineDetails:
         model.transactionLineDetails !== null &&
         model.transactionLineDetails.amountGo &&
         model.transactionLineDetails.amountReturn &&
         model.transactionLineDetails.driveChange
           ? {
+              id: model.transactionLineDetails.id,
               amountGo: Amount.from(model.transactionLineDetails.amountGo),
               amountReturn: Amount.from(
                 model.transactionLineDetails.amountReturn,
@@ -72,9 +83,8 @@ export default abstract class TransactionMapper extends BaseMapper<
       category: {
         id: model.category.id,
         name: model.category.name,
-        description: model.category.name,
+        description: model.category.description,
       },
-      paymentMethodId: model.paymentMethodId,
       createdAt: model.createdAt,
       updatedAt: model.updatedAt,
     };
