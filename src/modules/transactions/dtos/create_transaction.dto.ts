@@ -1,4 +1,5 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
+import CreateSplitPaymentDto from '@/modules/transactions/dtos/create_split_payment.dto';
 import CreateTransactionLineDetailsDto from '@/modules/transactions/dtos/create_transaction_line_details.dto';
 import { TransactionDto } from '@/modules/transactions/dtos/transaction.dto';
 import { ApiProperty, PickType } from '@nestjs/swagger';
@@ -13,19 +14,24 @@ import {
   IsUUID,
   MinLength,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateTransactionDto extends PickType(TransactionDto, [
   'categoryId',
   'description',
   'type',
-  'paymentMethodId',
 ] as const) {
   @IsUUID()
   declare categoryId: string;
 
-  @IsUUID()
-  declare paymentMethodId: string;
+  @ApiProperty({
+    description: 'List of split payments associated with this transaction',
+    type: () => [CreateSplitPaymentDto],
+  })
+  @ValidateNested({ each: true })
+  @Type(() => CreateSplitPaymentDto)
+  splitPayments: Array<CreateSplitPaymentDto>;
 
   @Type(() => CreateTransactionLineDetailsDto)
   @ValidateIf(obj => obj.transactionLineDetails !== null)
