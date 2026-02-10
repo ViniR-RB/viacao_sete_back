@@ -137,7 +137,6 @@ export default class TransactionRepository implements ITransactionRepository {
         .take(take)
         .getManyAndCount();
 
-      console.log('Generated SQL:', models);
       const entities = models.map(TransactionMapper.toReadModelWithCategory);
 
       const pageMetaEntity = new PageMetaEntity({
@@ -250,7 +249,7 @@ export default class TransactionRepository implements ITransactionRepository {
       );
     }
   }
-  
+
   /**
    * Calculate date boundaries based on period
    * TWELVE_MONTHS: From the 1st day of 12 months ago to the last day of current month
