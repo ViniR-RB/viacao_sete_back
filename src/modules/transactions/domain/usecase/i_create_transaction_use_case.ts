@@ -7,7 +7,11 @@ export interface CreateTransactionParam {
   categoryId: string;
   description: string;
   amount: number | null;
-  paymentMethodId: string
+  splitPayments: Array<{
+    id?: string;
+    paymentMethodId: string;
+    amount: number;
+  }>;
   type: TransactionType;
   createdAt: Date | null;
   trasactionLineDetails: {

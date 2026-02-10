@@ -1,23 +1,31 @@
 import UseCase from '@/core/interface/use_case';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
-import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
-import { CreateTransactionParam } from '@/modules/transactions/domain/usecase/i_create_transaction_use_case';
+import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
 
-export interface UpdateTransactionParam extends CreateTransactionParam {
+export interface UpdateTransactionParam {
   id: string;
+  description?: string;
+  type?: TransactionType;
+  amount?: number | null;
+  splitPayments?: {
+    id?: string;
+    paymentMethodId: string;
+    amount: number;
+  }[];
+  categoryId?: string;
+  createdAt?: Date;
+  transactionLineDetails?: {
+    amountGo: number;
+    amountReturn: number;
+    driveChange: number;
+  } | null;
 }
 
 export class UpdateTransactionResponse {
-  constructor(
-    public readonly transaction: TransactionEntity,
-    public readonly transactionLineDetails: TransactionLineDetailsEntity | null,
-  ) {}
+  constructor(public readonly transaction: TransactionEntity) {}
 
   fromResponse() {
-    return {
-      transaction: this.transaction,
-      transactionLineDetails: this.transactionLineDetails,
-    };
+    return this.transaction.toObject();
   }
 }
 

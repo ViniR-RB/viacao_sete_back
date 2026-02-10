@@ -7,7 +7,6 @@ import { Amount } from '@/core/value-objects/amount';
 import ITransactionRepository, {
   TransactionPeriod,
 } from '@/modules/transactions/adapters/i_transaction.repository';
-import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
 import {
   BreakdownSummary,
   DailyTransactionSummary,
@@ -19,6 +18,7 @@ import IExtractTransactionSummaryUseCase, {
   ExtractTransactionSummaryParam,
   ExtractTransactionSummaryResponse,
 } from '@/modules/transactions/domain/usecase/i_extract_transaction_summary_use_case';
+import TransactionWithTypeCreatedAndAmount from '@/modules/transactions/infra/read-models/transaction_with_type_created_and_amount';
 
 export default class ExtractTransactionSummaryService
   implements IExtractTransactionSummaryUseCase
@@ -122,7 +122,7 @@ export default class ExtractTransactionSummaryService
    * TWELVE_MONTHS: breakdown by month
    */
   private aggregateTransactions(
-    transactions: TransactionEntity[],
+    transactions: TransactionWithTypeCreatedAndAmount[],
     period: ExtractPeriod,
   ): {
     incomeTotal: Amount;

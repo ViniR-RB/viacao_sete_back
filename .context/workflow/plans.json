@@ -1,14 +1,14 @@
 {
   "active": [
     {
-      "slug": "ci-pipeline",
-      "path": "plans/ci-pipeline.md",
-      "title": "CI Pipeline for Test Enforcement",
-      "summary": "Create a CI pipeline that runs all tests and enforces passing tests before allowing merge/commit, using MCP ai-context and agents for automation.",
-      "linkedAt": "2026-01-23T13:15:10.020Z",
+      "slug": "updatetransactionserviceunittests",
+      "path": "plans/updatetransactionserviceunittests.md",
+      "title": "Unit Tests for UpdateTransactionService",
+      "summary": "Create comprehensive unit tests for the UpdateTransactionService covering success scenarios, error handling, transaction rollback, and business logic validation",
+      "linkedAt": "2026-02-03T20:50:05.941Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "ci-pipeline"
+  "primary": "updatetransactionserviceunittests"
 }

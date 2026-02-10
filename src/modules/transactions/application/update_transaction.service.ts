@@ -5,8 +5,9 @@ import IUnitOfWork from '@/core/interface/i_unit_of_work';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import { Amount } from '@/core/value-objects/amount';
+import IPaymentMethodRepository from '@/modules/transactions/adapters/i_payment_method.repository';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
-import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
+import SplitPaymentEntity from '@/modules/transactions/domain/entities/split_payment.entity';
 import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 import IUpdateTransactionUseCase, {
   UpdateTransactionParam,
@@ -19,20 +20,13 @@ export default class UpdateTransactionService
   constructor(
     private readonly unitOfWork: IUnitOfWork,
     private readonly transactionCategoryRepository: ITransactionCategoryRepository,
+    private readonly paymentMethodRepository: IPaymentMethodRepository,
   ) {}
   async execute(
     param: UpdateTransactionParam,
   ): AsyncResult<AppException, UpdateTransactionResponse> {
     try {
-      await this.unitOfWork.start();
-
-      const categoryFinderResult =
-        await this.transactionCategoryRepository.findOneById(param.categoryId);
-
-      if (categoryFinderResult.isLeft()) {
-        await this.unitOfWork.rollback();
-        return left(categoryFinderResult.value);
-      }
+      this.unitOfWork.start();
 
       const transactionRepository = this.unitOfWork.getTransactionRepository();
 
@@ -44,73 +38,119 @@ export default class UpdateTransactionService
         await this.unitOfWork.rollback();
         return left(transactionFindResult.value);
       }
-      let currentAmount = Amount.fromCents(param.amount || 0);
-      let updateTransactionLineUpdate: TransactionLineDetailsEntity | null =
-        null;
-      if (
-        param.trasactionLineDetails &&
-        transactionFindResult.value.transactionLineDetailsId
-      ) {
-        const transactionLineDetailsRepository =
-          this.unitOfWork.getTransactionLineDetailsRepository();
 
-        const transactionLineDetailsFindeResult =
-          await transactionLineDetailsRepository.findOne({
-            transactionLineDetailsId:
-              transactionFindResult.value.transactionLineDetailsId,
-          });
+      const transaction = transactionFindResult.value;
 
-        if (transactionLineDetailsFindeResult.isLeft()) {
-          await this.unitOfWork.rollback();
-          return left(transactionLineDetailsFindeResult.value);
-        }
-        const amountGo = Amount.fromCents(param.trasactionLineDetails.amountGo);
-        const amountReturn = Amount.fromCents(
-          param.trasactionLineDetails.amountReturn,
-        );
-        const driveChange = Amount.fromCents(
-          param.trasactionLineDetails.driveChange,
-        );
-
-        const savedTransactionLineDetails =
-          await transactionLineDetailsRepository.save(
-            TransactionLineDetailsEntity.create({
-              ...transactionLineDetailsFindeResult.value.toObject(),
-              amountGo: amountGo,
-              amountReturn: amountReturn,
-              driveChange: driveChange,
-            }),
+      if (param.categoryId && param.categoryId !== transaction.categoryId) {
+        const categoryResult =
+          await this.transactionCategoryRepository.findOneById(
+            param.categoryId,
           );
-        if (savedTransactionLineDetails.isLeft()) {
+
+        if (categoryResult.isLeft()) {
           await this.unitOfWork.rollback();
-          return left(savedTransactionLineDetails.value);
+          return left(categoryResult.value);
         }
-        currentAmount = savedTransactionLineDetails.value.getTotalAmount();
-        updateTransactionLineUpdate = savedTransactionLineDetails.value;
       }
 
-      const savedTransactionResult = await transactionRepository.save(
-        TransactionEntity.create({
-          ...transactionFindResult.value.toObject(),
-          categoryId: param.categoryId,
-          description: param.description,
-          amount: currentAmount,
-          paymentMethodId: param.paymentMethodId,
-          type: param.type,
-          createdAt: param.createdAt,
-        }),
-      );
+      let splitPayments: SplitPaymentEntity[] = transaction.splitPayments;
 
-      if (savedTransactionResult.isLeft()) {
-        return left(savedTransactionResult.value);
+      if (param.splitPayments !== undefined && param.splitPayments.length > 0) {
+        const paymentMethodIds = new Set(
+          param.splitPayments.map(sp => sp.paymentMethodId),
+        );
+
+        const paymentMethodResults = await Promise.all(
+          [...paymentMethodIds].map(paymentMethodId =>
+            this.paymentMethodRepository.findOneById(paymentMethodId),
+          ),
+        );
+
+        const paymentMethodErrors = paymentMethodResults
+          .filter(result => result.isLeft() === true)
+          .map(result => (result.isLeft() ? result.value : null))
+          .filter(value => value !== null);
+
+        if (paymentMethodErrors.length > 0) {
+          await this.unitOfWork.rollback();
+          return left(paymentMethodErrors[0]);
+        }
+
+        // Criar/atualizar todos os split payments do param
+        const updatedSplitPayments = param.splitPayments.map(sp =>
+          SplitPaymentEntity.create({
+            id: sp.id,
+            paymentMethodId: sp.paymentMethodId,
+            transactionId: transaction.id,
+            amount: sp.amount,
+          }),
+        );
+
+        const updatedSplitPaymentIds = new Set(
+          updatedSplitPayments.map(sp => sp.id),
+        );
+        const splitPaymentsToDelete = transaction.splitPayments.filter(
+          sp => !updatedSplitPaymentIds.has(sp.id),
+        );
+
+        // Remover split payments que não estão mais na lista
+        if (splitPaymentsToDelete.length > 0) {
+          const deletionIds = splitPaymentsToDelete.map(sp => sp.id);
+          const result =
+            await transactionRepository.deleteSplitPaymentsByIds(deletionIds);
+
+          if (result.isLeft()) {
+            await this.unitOfWork.rollback();
+            return left(result.value);
+          }
+        }
+
+        splitPayments = updatedSplitPayments;
       }
+
+      let lineDetails: TransactionLineDetailsEntity | null =
+        transaction.transactionLineDetails;
+
+      if (
+        param.transactionLineDetails &&
+        param.transactionLineDetails !== null
+      ) {
+        const transactionLineDetailsId =
+          transaction.transactionLineDetails?.id || crypto.randomUUID();
+
+        lineDetails = TransactionLineDetailsEntity.create({
+          id: transactionLineDetailsId,
+          transactionId: transaction.id,
+          amountGo: Amount.fromCents(param.transactionLineDetails.amountGo),
+          amountReturn: Amount.fromCents(
+            param.transactionLineDetails.amountReturn,
+          ),
+          driveChange: Amount.fromCents(
+            param.transactionLineDetails.driveChange,
+          ),
+        });
+      }
+
+      transaction.update({
+        description: param.description,
+        type: param.type,
+        amountInCents: param.amount,
+        splitPayments: splitPayments,
+        categoryId: param.categoryId,
+        transactionLineDetails: lineDetails,
+        createdAt: param.createdAt,
+      });
+      const saveResult = await transactionRepository.save(transaction);
+
+      if (saveResult.isLeft()) {
+        await this.unitOfWork.rollback();
+        return left(saveResult.value);
+      }
+
+      const updatedTransaction = saveResult.value;
       await this.unitOfWork.commit();
-      return right(
-        new UpdateTransactionResponse(
-          savedTransactionResult.value,
-          updateTransactionLineUpdate,
-        ),
-      );
+
+      return right(new UpdateTransactionResponse(updatedTransaction));
     } catch (error) {
       await this.unitOfWork.rollback();
       if (error instanceof AppException) {

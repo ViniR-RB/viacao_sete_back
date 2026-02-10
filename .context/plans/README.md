@@ -4,6 +4,7 @@ This directory contains plans for coordinating work across documentation and pla
 
 ## Plan Queue
 1. [Ci Pipeline](./ci-pipeline.md)
+2. [Updatetransactionserviceunittests](./updatetransactionserviceunittests.md)
 
 ## How To Create Or Update Plans
 - Run "ai-context plan <name>" to scaffold a new plan template.

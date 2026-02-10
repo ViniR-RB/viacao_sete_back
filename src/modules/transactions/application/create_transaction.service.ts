@@ -5,21 +5,22 @@ import IUnitOfWork from '@/core/interface/i_unit_of_work';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
 import { Amount } from '@/core/value-objects/amount';
+import IPaymentMethodRepository from '@/modules/transactions/adapters/i_payment_method.repository';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
+import SplitPaymentEntity from '@/modules/transactions/domain/entities/split_payment.entity';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
-import TransactionCreationDomainService from '@/modules/transactions/domain/services/transaction_creation.domain_service';
+import TransactionLineDetailsEntity from '@/modules/transactions/domain/entities/transaction_line_details.entity';
 import ICreateTransactionUseCase, {
   CreateTransactionParam,
   CreateTransactionResponse,
 } from '@/modules/transactions/domain/usecase/i_create_transaction_use_case';
-import { randomUUID } from 'crypto';
 
 export default class CreateTransactionService
   implements ICreateTransactionUseCase
 {
   constructor(
     private readonly transactionCategoryRepository: ITransactionCategoryRepository,
-    private readonly transactionCreationDomainService: TransactionCreationDomainService,
+    private readonly paymentMethodRepository: IPaymentMethodRepository,
     private readonly unitOfWork: IUnitOfWork,
   ) {}
 
@@ -29,59 +30,61 @@ export default class CreateTransactionService
     try {
       this.unitOfWork.start();
 
-      // 1. Validar categoria
-      const categoryResult = await this.validateCategory(param.categoryId);
-      if (categoryResult.isLeft()) {
+      const transactionCategoryResult =
+        await this.transactionCategoryRepository.findOneById(param.categoryId);
+
+      if (transactionCategoryResult.isLeft()) {
         await this.unitOfWork.rollback();
-        return left(categoryResult.value);
+        return left(transactionCategoryResult.value);
       }
 
-      const transactionId = randomUUID();
+      const transactionId = crypto.randomUUID();
 
-      // 2. Processar linha de detalhes através do Domain Service
-      const processLineDetailsResult =
-        await this.transactionCreationDomainService.processLineDetails(
-          param.trasactionLineDetails,
-          transactionId,
-        );
+      let lineDetails: TransactionLineDetailsEntity | null = null;
 
-      if (processLineDetailsResult.isLeft()) {
-        await this.unitOfWork.rollback();
-        return left(processLineDetailsResult.value);
+      if (param.trasactionLineDetails !== null) {
+        lineDetails = TransactionLineDetailsEntity.create({
+          amountGo: Amount.fromCents(param.trasactionLineDetails.amountGo),
+          amountReturn: Amount.fromCents(
+            param.trasactionLineDetails.amountReturn,
+          ),
+          driveChange: Amount.fromCents(
+            param.trasactionLineDetails.driveChange,
+          ),
+          transactionId: transactionId,
+        });
       }
+      const splitPayments = param.splitPayments.map(sp =>
+        SplitPaymentEntity.create({
+          id: sp.id,
+          paymentMethodId: sp.paymentMethodId,
+          transactionId: transactionId,
+          amount: sp.amount,
+        }),
+      );
 
-      const { amount: finalAmount, lineDetailsId } =
-        processLineDetailsResult.value;
-
-      // 3. Se não houver detalhes, usar o montante simples
-      const transactionAmount =
-        param.trasactionLineDetails === null && param.amount
-          ? Amount.fromCents(param.amount)
-          : finalAmount;
-
-      // 4. Criar entidade de transação (que valida automaticamente via TransactionEntity.create)
-      const transaction: TransactionEntity = TransactionEntity.create({
+      const transaction = TransactionEntity.create({
         id: transactionId,
         userId: param.userId,
         categoryId: param.categoryId,
         description: param.description,
-        transactionLineDetailsId: lineDetailsId,
-        paymentMethodId: param.paymentMethodId,
-        amount: transactionAmount,
+        transactionLineDetails: lineDetails,
+        splitPayments: splitPayments,
+        amountInCents: param.amount,
         type: param.type,
         createdAt: param.createdAt,
       });
 
-      // 5. Persistir transação
       const transactionRepository = this.unitOfWork.getTransactionRepository();
       const saveResult = await transactionRepository.save(transaction);
+
       if (saveResult.isLeft()) {
         await this.unitOfWork.rollback();
         return left(saveResult.value);
       }
 
-      // 6. Confirmar transação
       const savedTransaction = saveResult.value;
+
       await this.unitOfWork.commit();
       return right(new CreateTransactionResponse(savedTransaction));
     } catch (error) {
@@ -93,12 +96,5 @@ export default class CreateTransactionService
         new ServiceException(ErrorMessages.UNEXPECTED_ERROR, 500, error),
       );
     }
-  }
-
-  /**
-   * Valida se a categoria existe no banco de dados
-   */
-  private async validateCategory(categoryId: string) {
-    return await this.transactionCategoryRepository.findOneById(categoryId);
   }
 }

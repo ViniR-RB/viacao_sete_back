@@ -12,17 +12,16 @@ export default abstract class TransactionLineDetailsMapper extends BaseMapper<
   ): TransactionLineDetailsEntity {
     return TransactionLineDetailsEntity.fromData({
       id: model.id,
-      transactionId: model.transactionId,
       amountGo: Amount.from(model.amountGo || 0),
       amountReturn: Amount.from(model.amountReturn || 0),
       driveChange: Amount.from(model.driveChange || 0),
-      createdAt: model.createdAt,
-      updatedAt: model.updatedAt,
+
+      transactionId: model.transactionId,
     });
   }
   static toModel(
     entity: TransactionLineDetailsEntity,
-  ): Partial<TransactionLineDetailsModel> {
+  ): TransactionLineDetailsModel {
     return {
       id: entity.id,
       transactionId: entity.transactionId,

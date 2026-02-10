@@ -2,6 +2,8 @@ import ErrorMessages from '@/core/constants/error_messages';
 import AppException from '@/core/exceptions/app_exception';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import Unit, { unit } from '@/core/types/unit';
+import { Amount } from '@/core/value-objects/amount';
 import PageEntity from '@/modules/pagination/domain/entities/page.entity';
 import PageMetaEntity from '@/modules/pagination/domain/entities/page_meta.entity';
 import ITransactionRepository, {
@@ -15,6 +17,7 @@ import TransactionRepositoryException from '@/modules/transactions/exceptions/tr
 import TransactionMapper from '@/modules/transactions/infra/mapper/transaction.mapper';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
+import TransactionWithTypeCreatedAndAmount from '@/modules/transactions/infra/read-models/transaction_with_type_created_and_amount';
 import {
   EntityManager,
   EntityNotFoundError,
@@ -29,6 +32,27 @@ export default class TransactionRepository implements ITransactionRepository {
       this.repository = repoOrManager;
     } else {
       this.repository = repoOrManager.getRepository(TransactionModel);
+    }
+  }
+  async deleteSplitPaymentsByIds(
+    ids: string[],
+  ): AsyncResult<AppException, Unit> {
+    try {
+      await this.repository
+        .createQueryBuilder()
+        .delete()
+        .from('split_payments')
+        .where('id IN (:...ids)', { ids })
+        .execute();
+      return right(unit);
+    } catch (error) {
+      return left(
+        new TransactionRepositoryException(
+          ErrorMessages.UNEXPECTED_ERROR,
+          500,
+          error,
+        ),
+      );
     }
   }
 
@@ -67,7 +91,13 @@ export default class TransactionRepository implements ITransactionRepository {
         .leftJoin('t.category', 'c')
         .addSelect(['c.name', 'c.description', 'c.id'])
         .leftJoin('t.transactionLineDetails', 'tld')
-        .addSelect(['tld.amountGo', 'tld.amountReturn', 'tld.driveChange']);
+        .addSelect([
+          'tld.id',
+          'tld.amountGo',
+          'tld.amountReturn',
+          'tld.driveChange',
+        ])
+        .leftJoinAndSelect('t.splitPayments', 'tsp');
 
       if (query.type) {
         queryBuilder = queryBuilder.andWhere('t.type = :type', {
@@ -106,9 +136,9 @@ export default class TransactionRepository implements ITransactionRepository {
         .skip(skip)
         .take(take)
         .getManyAndCount();
-      const entities = models.map(model =>
-        TransactionMapper.toReadModelWithCategory(model),
-      );
+
+      console.log('Generated SQL:', models);
+      const entities = models.map(TransactionMapper.toReadModelWithCategory);
 
       const pageMetaEntity = new PageMetaEntity({
         pageOptions: query.options,
@@ -135,6 +165,7 @@ export default class TransactionRepository implements ITransactionRepository {
     try {
       let options: FindOneOptions<TransactionModel> = {
         select: query.selectFields,
+        relations: query.relations,
       };
 
       if (query.transactionId) {
@@ -168,7 +199,7 @@ export default class TransactionRepository implements ITransactionRepository {
 
   async findByPeriod(
     query: TransactionPeriodQueryOptions,
-  ): AsyncResult<AppException, TransactionEntity[]> {
+  ): AsyncResult<AppException, TransactionWithTypeCreatedAndAmount[]> {
     try {
       const { startDate, endDate } = this.calculatePeriodBoundaries(
         query.period,
@@ -180,13 +211,18 @@ export default class TransactionRepository implements ITransactionRepository {
           startDate,
           endDate,
         })
-        .leftJoin('t.category', 'c')
-        .addSelect(['c.name', 'c.description'])
+        .select(['t.amount', 't.type', 't.createdAt'])
         .orderBy('t.createdAt', 'DESC');
 
       const models = await queryBuilder.getMany();
 
-      const entities = models.map(model => TransactionMapper.toEntity(model));
+      const entities: TransactionWithTypeCreatedAndAmount[] = models.map(
+        model => ({
+          amount: Amount.from(model.amount),
+          type: model.type,
+          createdAt: model.createdAt,
+        }),
+      );
 
       return right(entities);
     } catch (error) {
@@ -200,11 +236,6 @@ export default class TransactionRepository implements ITransactionRepository {
     }
   }
 
-  /**
-   * Calculate date boundaries based on period
-   * TWELVE_MONTHS: From the 1st day of 12 months ago to the last day of current month
-   * LAST_30_DAYS: From 30 days ago to today
-   */
   async delete(entity: TransactionEntity): AsyncResult<AppException, void> {
     try {
       await this.repository.delete(entity.id);
@@ -219,7 +250,12 @@ export default class TransactionRepository implements ITransactionRepository {
       );
     }
   }
-
+  
+  /**
+   * Calculate date boundaries based on period
+   * TWELVE_MONTHS: From the 1st day of 12 months ago to the last day of current month
+   * LAST_30_DAYS: From 30 days ago to today
+   */
   private calculatePeriodBoundaries(period: TransactionPeriod): {
     startDate: Date;
     endDate: Date;

@@ -7,8 +7,6 @@ export interface TransactionLineDetailsEntityProps {
   amountGo: Amount;
   amountReturn: Amount;
   driveChange: Amount;
-  createdAt: Date;
-  updatedAt: Date;
 }
 export default class TransactionLineDetailsEntity {
   private constructor(
@@ -20,8 +18,6 @@ export default class TransactionLineDetailsEntity {
       amountGo: props.amountGo,
       amountReturn: props.amountReturn,
       driveChange: props.driveChange,
-      createdAt: props.createdAt,
-      updatedAt: props.updatedAt,
     };
   }
 
@@ -36,8 +32,6 @@ export default class TransactionLineDetailsEntity {
     return new TransactionLineDetailsEntity({
       ...props,
       id: props.id || crypto.randomUUID(),
-      createdAt: props.createdAt || new Date(),
-      updatedAt: new Date(),
     });
   }
 
@@ -63,14 +57,6 @@ export default class TransactionLineDetailsEntity {
 
   get driveChange() {
     return this.props.driveChange;
-  }
-
-  get createdAt() {
-    return this.props.createdAt;
-  }
-
-  get updatedAt() {
-    return this.props.updatedAt;
   }
 
   /**
@@ -100,13 +86,11 @@ export default class TransactionLineDetailsEntity {
 
   toObject() {
     return {
-      id: this.id,
-      transactionId: this.transactionId,
-      amountGo: this.amountGo,
-      amountReturn: this.amountReturn,
-      driveChange: this.driveChange,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      id: this.props.id,
+      transactionId: this.props.transactionId,
+      amountGo: this.props.amountGo.getValue,
+      amountReturn: this.props.amountReturn.getValue,
+      driveChange: this.props.driveChange.getValue,
     };
   }
 }

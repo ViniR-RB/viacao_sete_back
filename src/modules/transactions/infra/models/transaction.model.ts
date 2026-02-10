@@ -1,13 +1,14 @@
 import { TransactionType } from '@/modules/transactions/domain/types/transaction-type';
+import SplitPaymentModel from '@/modules/transactions/infra/models/split_payment.model';
 import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import UserModel from '@/modules/users/infra/models/user.model';
-import PaymentMethodModel from '@/modules/transactions/infra/models/payment-method.model';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryColumn,
   UpdateDateColumn,
@@ -33,23 +34,28 @@ export default class TransactionModel {
   @JoinColumn({ name: 'categoryId' })
   category: TransactionCategoryModel;
 
-  @Column({ type: 'uuid', nullable: true, name: 'paymentMethodId' })
-  paymentMethodId: string | null;
-
-  @ManyToOne(() => PaymentMethodModel, { onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'paymentMethodId' })
-  paymentMethod: PaymentMethodModel | null;
+  @OneToMany(
+    () => SplitPaymentModel,
+    splitPayment => splitPayment.transaction,
+    {
+      cascade: ['insert', 'update'],
+      eager: true,
+      orphanedRowAction: 'delete',
+    },
+  )
+  splitPayments: SplitPaymentModel[];
 
   @OneToOne(
     () => TransactionLineDetailsModel,
     transactionLineDetailsModel => transactionLineDetailsModel.transaction,
-    { nullable: true, onDelete: 'CASCADE' },
+    {
+      nullable: true,
+      cascade: ['insert', 'update', 'remove'],
+      eager: true,
+      onDelete: 'CASCADE',
+    },
   )
-  @JoinColumn({ name: 'transaction_line_details_id' })
   transactionLineDetails: TransactionLineDetailsModel | null;
-
-  @Column({ type: 'uuid', nullable: true, name: 'transaction_line_details_id' })
-  transactionLineDetailsId: string | null;
 
   @Column('varchar', { length: 255 })
   description: string;
