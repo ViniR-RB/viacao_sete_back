@@ -14,6 +14,7 @@ services:
       - .env
     depends_on:
       - postgres
+      - redis
 
   postgres:
     container_name: viacao_sete_postgres
@@ -29,6 +30,19 @@ services:
       POSTGRES_DB: ${DATABASE_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  redis:
+    container_name: viacao_sete_redis
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    env_file:
+      - .env
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: >
+      sh -c "redis-server --requirepass \"$REDIS_PASSWORD\""
 
   nest-prod:
     build:
