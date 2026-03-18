@@ -81,4 +81,13 @@ export default class EnvironmentVariables {
   @IsString()
   @ValidateIf(o => o.NODE_ENV === 'prd')
   SENTRY_DSN: string;
+
+  @IsString()
+  REDIS_HOST: string;
+
+  @IsNumber()
+  REDIS_PORT: number;
+
+  @IsString()
+  REDIS_PASSWORD: string;
 }

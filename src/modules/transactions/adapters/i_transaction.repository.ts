@@ -7,6 +7,7 @@ import PageOptionsEntity from '@/modules/pagination/domain/entities/page_options
 import { TransactionFindOneQueryOptions } from '@/modules/transactions/adapters/query/query_options';
 import TransactionEntity from '@/modules/transactions/domain/entities/transaction.entity';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
+import TransactionForReportReadModel from '@/modules/transactions/infra/read-models/transaction_for_report_read_model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
 import TransactionWithTypeCreatedAndAmount from '@/modules/transactions/infra/read-models/transaction_with_type_created_and_amount';
 
@@ -41,4 +42,9 @@ export default interface ITransactionRepository
   ): AsyncResult<AppException, TransactionWithTypeCreatedAndAmount[]>;
   delete(entity: TransactionEntity): AsyncResult<AppException, void>;
   deleteSplitPaymentsByIds(ids: string[]): AsyncResult<AppException, Unit>;
+  findByFiltersForReport(query: {
+    startDate: Date;
+    endDate: Date;
+    categoryIds: string[];
+  }): AsyncResult<AppException, TransactionForReportReadModel[]>;
 }

@@ -4,6 +4,7 @@ import ServiceException from '@/core/exceptions/service.exception';
 import IUnitOfWork from '@/core/interface/i_unit_of_work';
 import AsyncResult from '@/core/types/async_result';
 import { left, right } from '@/core/types/either';
+import Nil from '@/core/types/nil';
 import Unit, { unit } from '@/core/types/unit';
 import IAttachmentRepository from '@/modules/attachments/adapters/i_attachment.repository';
 import AttachmentEntity from '@/modules/attachments/domain/entities/attachment.entity';
@@ -13,6 +14,7 @@ import ICreateAttachmentUseCase, {
   CreateAttachmentResponse,
 } from '@/modules/attachments/domain/usecase/i_create_attachment_use_case';
 import IUploadFileUseCase from '@/modules/file/domain/usecase/i_upload_file_use.case';
+import IReportRepository from '@/modules/transactions/adapters/i_report.repository';
 import ITransactionRepository from '@/modules/transactions/adapters/i_transaction.repository';
 
 export default class CreateAttachmentService
@@ -26,8 +28,11 @@ export default class CreateAttachmentService
   async execute(
     param: CreateAttachmentParam,
   ): AsyncResult<AppException, CreateAttachmentResponse> {
+    const shouldManageTransaction = param.context !== undefined;
     try {
-      await this.unitOfWork.start();
+      if (shouldManageTransaction) {
+        await this.unitOfWork.start();
+      }
 
       const attachmentId = crypto.randomUUID();
 
@@ -39,10 +44,7 @@ export default class CreateAttachmentService
           attachmentId,
         );
 
-      if (entityValidationResult.isLeft()) {
-        await this.unitOfWork.rollback();
-        return left(entityValidationResult.value);
-      }
+      entityValidationResult.getOrThrow();
 
       const fileId = crypto.randomUUID();
 
@@ -61,26 +63,23 @@ export default class CreateAttachmentService
 
       const saveResult = await attachmentRepository.save(attachmentEntity);
 
-      if (saveResult.isLeft()) {
-        await this.unitOfWork.rollback();
-        return left(saveResult.value);
-      }
-
       const uploadResult = await this.uploadFileService.execute({
         ...param.file,
         id: fileId,
       });
 
-      if (uploadResult.isLeft()) {
-        await this.unitOfWork.rollback();
-        return left(uploadResult.value);
+      uploadResult.getOrThrow();
+
+      if (shouldManageTransaction) {
+        await this.unitOfWork.commit();
       }
 
-      await this.unitOfWork.commit();
-
-      return right(new CreateAttachmentResponse(attachmentId));
+      return right(new CreateAttachmentResponse(saveResult.getOrThrow()));
     } catch (error) {
-      await this.unitOfWork.rollback();
+      if (shouldManageTransaction) {
+        await this.unitOfWork.rollback();
+      }
+
       if (error instanceof AppException) {
         return left(error);
       }
@@ -121,7 +120,38 @@ export default class CreateAttachmentService
         }
         return right(unit);
       }
+      case AttachmentScope.REPORT:
+        const reportRepository: IReportRepository =
+          this.unitOfWork.getReportRepository();
 
+        const findReportResult = await reportRepository.findById(entityId);
+
+        if (findReportResult.isLeft()) {
+          return left(
+            new ServiceException(
+              'Report not found for the provided entity ID',
+              404,
+            ),
+          );
+        }
+        if (findReportResult.value instanceof Nil) {
+          return left(
+            new ServiceException(
+              'Report not found for the provided entity ID',
+              404,
+            ),
+          );
+        }
+        findReportResult.value.updatePdfUrl(attachmentId);
+
+        const updateReportResult = await reportRepository.save(
+          findReportResult.value,
+        );
+
+        if (updateReportResult.isLeft()) {
+          throw updateReportResult.value;
+        }
+        return right(unit);
       default:
         throw new ServiceException('Unknown attachment scope', 400);
     }

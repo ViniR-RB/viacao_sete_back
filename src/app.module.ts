@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import QueueModule from '@/modules/queue/queue.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { AppService } from './app.service';
     AttachmentModule,
     FileModule,
     CoreModule,
+    QueueModule,
     UsersModule,
     AuthModule,
     TransactionsModule,
