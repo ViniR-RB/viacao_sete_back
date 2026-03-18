@@ -1,13 +1,23 @@
 import IUnitOfWork from '@/core/interface/i_unit_of_work';
 import IAttachmentRepository from '@/modules/attachments/adapters/i_attachment.repository';
 import AttachmentRepository from '@/modules/attachments/infra/repositories/attachment.repository';
+import IReportRepository from '@/modules/transactions/adapters/i_report.repository';
 import ITransactionRepository from '@/modules/transactions/adapters/i_transaction.repository';
+import ReportRepository from '@/modules/transactions/infra/repositories/report.repository';
 import TransactionRepository from '@/modules/transactions/infra/repositories/transaction.repository';
 import { DataSource, QueryRunner } from 'typeorm';
 
 export default class TypeormUnitOfWork implements IUnitOfWork {
   private queryRunner: QueryRunner;
   constructor(private dataSource: DataSource) {}
+  getReportRepository(): IReportRepository {
+    if (!this.queryRunner || !this.queryRunner.manager) {
+      throw new Error(
+        'Transaction not started. Call start() first when getReportRepository',
+      );
+    }
+    return new ReportRepository(this.queryRunner.manager);
+  }
   getAttachmentRepository(): IAttachmentRepository {
     if (!this.queryRunner || !this.queryRunner.manager) {
       throw new Error(
