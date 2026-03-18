@@ -2,9 +2,15 @@ import CoreModule from '@/core/core_module';
 import IUnitOfWork from '@/core/interface/i_unit_of_work';
 import { UNIT_OF_WORK } from '@/core/symbols';
 import AuthModule from '@/modules/auth/auth.module';
+import { IQueueService } from '@/modules/queue/adapters/i_queue.service';
+import QueueModule from '@/modules/queue/queue.module';
+import { QUEUE_SERVICE } from '@/modules/queue/symbols';
 import IPaymentMethodRepository from '@/modules/transactions/adapters/i_payment_method.repository';
+import IReportRepository from '@/modules/transactions/adapters/i_report.repository';
+import ITransactionRepository from '@/modules/transactions/adapters/i_transaction.repository';
 import ITransactionCategoryRepository from '@/modules/transactions/adapters/i_transaction_category.repository';
 import CreatePaymentMethodService from '@/modules/transactions/application/create_payment_method.service';
+import CreateReportService from '@/modules/transactions/application/create_report.service';
 import CreateTransactionService from '@/modules/transactions/application/create_transaction.service';
 import CreateTransactionCategoryService from '@/modules/transactions/application/create_transaction_category.service';
 import DeletePaymentMethodService from '@/modules/transactions/application/delete_payment_method.service';
@@ -12,6 +18,7 @@ import DeleteTransactionService from '@/modules/transactions/application/delete_
 import DeleteTransactionCategoryService from '@/modules/transactions/application/delete_transaction_category.service';
 import ExtractTransactionSummaryService from '@/modules/transactions/application/extract_transaction_summary.service';
 import ListPaymentMethodsService from '@/modules/transactions/application/list_payment_methods.service';
+import ListReportsService from '@/modules/transactions/application/list_reports.service';
 import ListTransactionCategoriesService from '@/modules/transactions/application/list_transaction_categories.service';
 import ListTransactionsService from '@/modules/transactions/application/list_transactions.service';
 import UpdateTransactionService from '@/modules/transactions/application/update_transaction.service';
@@ -19,15 +26,18 @@ import UpdateTransactionCategoryService from '@/modules/transactions/application
 import PaymentMethodController from '@/modules/transactions/controller/payment-method.controller';
 import TransactionsController from '@/modules/transactions/controller/transactions.controller';
 import PaymentMethodModel from '@/modules/transactions/infra/models/payment-method.model';
+import ReportModel from '@/modules/transactions/infra/models/report.model';
 import SplitPaymentModel from '@/modules/transactions/infra/models/split_payment.model';
 import TransactionCategoryModel from '@/modules/transactions/infra/models/transaction-category.model';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
 import TransactionLineDetailsModel from '@/modules/transactions/infra/models/transaction_line_details.model';
 import PaymentMethodRepository from '@/modules/transactions/infra/repositories/payment-method.repository';
+import ReportRepository from '@/modules/transactions/infra/repositories/report.repository';
 import TransactionCategoryRepository from '@/modules/transactions/infra/repositories/transaction-category.repository';
 import TransactionRepository from '@/modules/transactions/infra/repositories/transaction.repository';
 import {
   CREATE_PAYMENT_METHOD_SERVICE,
+  CREATE_REPORT_SERVICE,
   CREATE_TRANSACTION_CATEGORY_SERVICE,
   CREATE_TRANSACTION_SERVICE,
   DELETE_PAYMENT_METHOD_SERVICE,
@@ -35,9 +45,11 @@ import {
   DELETE_TRANSACTION_SERVICE,
   EXTRACT_TRANSACTION_SUMMARY_SERVICE,
   LIST_PAYMENT_METHODS_SERVICE,
+  LIST_REPORTS_SERVICE,
   LIST_TRANSACTION_CATEGORIES_SERVICE,
   LIST_TRANSACTIONS_SERVICE,
   PAYMENT_METHOD_REPOSITORY,
+  REPORT_REPOSITORY,
   TRANSACTION_CATEGORY_REPOSITORY,
   TRANSACTION_REPOSITORY,
   UPDATE_TRANSACTION_CATEGORY_SERVICE,
@@ -55,9 +67,11 @@ import { Repository } from 'typeorm';
       TransactionLineDetailsModel,
       PaymentMethodModel,
       SplitPaymentModel,
+      ReportModel,
     ]),
     AuthModule,
     CoreModule,
+    QueueModule,
   ],
   controllers: [TransactionsController, PaymentMethodController],
   providers: [
@@ -78,6 +92,12 @@ import { Repository } from 'typeorm';
       provide: PAYMENT_METHOD_REPOSITORY,
       useFactory: (repo: Repository<PaymentMethodModel>) =>
         new PaymentMethodRepository(repo),
+    },
+    {
+      inject: [getRepositoryToken(ReportModel)],
+      provide: REPORT_REPOSITORY,
+      useFactory: (reportRepository: Repository<ReportModel>) =>
+        new ReportRepository(reportRepository),
     },
     {
       inject: [
@@ -142,7 +162,7 @@ import { Repository } from 'typeorm';
     {
       inject: [TRANSACTION_REPOSITORY],
       provide: LIST_TRANSACTIONS_SERVICE,
-      useFactory: (transactionRepository: TransactionRepository) =>
+      useFactory: (transactionRepository: ITransactionRepository) =>
         new ListTransactionsService(transactionRepository),
     },
     {
@@ -154,7 +174,7 @@ import { Repository } from 'typeorm';
     {
       inject: [TRANSACTION_REPOSITORY],
       provide: EXTRACT_TRANSACTION_SUMMARY_SERVICE,
-      useFactory: (transactionRepository: TransactionRepository) =>
+      useFactory: (transactionRepository: ITransactionRepository) =>
         new ExtractTransactionSummaryService(transactionRepository),
     },
     {
@@ -175,6 +195,31 @@ import { Repository } from 'typeorm';
       useFactory: (paymentMethodRepository: IPaymentMethodRepository) =>
         new DeletePaymentMethodService(paymentMethodRepository),
     },
+    {
+      inject: [REPORT_REPOSITORY],
+      provide: LIST_REPORTS_SERVICE,
+      useFactory: (reportRepository: IReportRepository) =>
+        new ListReportsService(reportRepository),
+    },
+    {
+      inject: [UNIT_OF_WORK, TRANSACTION_CATEGORY_REPOSITORY, QUEUE_SERVICE],
+      provide: CREATE_REPORT_SERVICE,
+      useFactory: (
+        unitOfWork: IUnitOfWork,
+        transactionCategoryRepository: ITransactionCategoryRepository,
+        queueService: IQueueService,
+      ) =>
+        new CreateReportService(
+          unitOfWork,
+          transactionCategoryRepository,
+          queueService,
+        ),
+    },
+  ],
+  exports: [
+    TRANSACTION_REPOSITORY,
+    REPORT_REPOSITORY,
+    TRANSACTION_CATEGORY_REPOSITORY,
   ],
 })
 export default class TransactionsModule {}
