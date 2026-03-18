@@ -16,6 +16,7 @@ import TransactionEntity from '@/modules/transactions/domain/entities/transactio
 import TransactionRepositoryException from '@/modules/transactions/exceptions/transaction_repository.exception';
 import TransactionMapper from '@/modules/transactions/infra/mapper/transaction.mapper';
 import TransactionModel from '@/modules/transactions/infra/models/transaction.model';
+import TransactionForReportReadModel from '@/modules/transactions/infra/read-models/transaction_for_report_read_model';
 import TransactionWithCategoryReadModel from '@/modules/transactions/infra/read-models/transaction_with_category_read_model';
 import TransactionWithTypeCreatedAndAmount from '@/modules/transactions/infra/read-models/transaction_with_type_created_and_amount';
 import {
@@ -239,6 +240,78 @@ export default class TransactionRepository implements ITransactionRepository {
     try {
       await this.repository.delete(entity.id);
       return right(undefined);
+    } catch (error) {
+      return left(
+        new TransactionRepositoryException(
+          ErrorMessages.UNEXPECTED_ERROR,
+          500,
+          error,
+        ),
+      );
+    }
+  }
+
+  async findByFiltersForReport(query: {
+    startDate: Date;
+    endDate: Date;
+    categoryIds: string[];
+  }): AsyncResult<AppException, TransactionForReportReadModel[]> {
+    const { startDate, endDate, categoryIds } = query;
+    try {
+      let queryBuilder = this.repository
+        .createQueryBuilder('t')
+        .addSelect([
+          't.id',
+          't.amount',
+          't.createdAt',
+          't.type',
+          't.description',
+        ]);
+
+      if (categoryIds && categoryIds.length > 0) {
+        queryBuilder = queryBuilder.andWhere(
+          't.categoryId IN (:...categoryIds)',
+          {
+            categoryIds,
+          },
+        );
+      }
+
+      if (startDate && endDate) {
+        queryBuilder = queryBuilder.andWhere(
+          't.createdAt BETWEEN :startDate AND :endDate',
+          {
+            startDate,
+            endDate,
+          },
+        );
+      } else if (startDate) {
+        queryBuilder = queryBuilder.andWhere('t.createdAt >= :startDate', {
+          startDate,
+        });
+      } else if (endDate) {
+        queryBuilder = queryBuilder.andWhere('t.createdAt <= :endDate', {
+          endDate,
+        });
+      }
+      queryBuilder = queryBuilder
+        .leftJoin('t.category', 'category')
+        .addSelect(['category.name']);
+
+      const models = await queryBuilder.orderBy('t.createdAt', 'ASC').getMany();
+
+      const entities: TransactionForReportReadModel[] = models.map(m => {
+        return {
+          description: m.description,
+          amount: Amount.from(m.amount),
+          createdAt: m.createdAt,
+          id: m.id,
+          type: m.type,
+          categoryName: m.category.name,
+        };
+      });
+
+      return right(entities);
     } catch (error) {
       return left(
         new TransactionRepositoryException(
